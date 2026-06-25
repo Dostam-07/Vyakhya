@@ -1,0 +1,6 @@
+{
+  "name": "Vyakhya",
+  "description": "AI-Powered Multilingual Explainer Video & Podcast Platform powered by Google Gemini and HTML5 Canvas animations.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
