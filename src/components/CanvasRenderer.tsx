@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Scene } from "../types";
+import { Scene, LANGUAGES } from "../types";
 import { Play, Pause, RefreshCw, Download, Volume2, VolumeX } from "lucide-react";
+import { useToast } from "../contexts/ToastContext";
 
 interface CanvasRendererProps {
   scenes: Scene[];
@@ -23,6 +24,7 @@ export default function CanvasRenderer({
   voicePreference,
   language,
 }: CanvasRendererProps) {
+  const { showToast } = useToast();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
   
@@ -67,7 +69,7 @@ export default function CanvasRenderer({
       setEditHeadline(activeScene.headline);
       setEditNarration(activeScene.narration);
       setEditTransition(activeScene.transition_type || "fade");
-      setEditBgColor(activeScene.bg_color || "#0d0d0f");
+      setEditBgColor(activeScene.bg_color || "#15131A");
       setEditAccentColor(activeScene.accent_color || "#7c6af7");
     }
   }, [currentIndex, activeScene]);
@@ -606,14 +608,14 @@ export default function CanvasRenderer({
         ctx.fillStyle = "rgba(10, 10, 12, 0.72)";
         ctx.fillRect(0, 0, w, h);
       } else {
-        ctx.fillStyle = scene.bg_color || "#0d0d0f";
+        ctx.fillStyle = scene.bg_color || "#15131A";
         ctx.fillRect(0, 0, w, h);
         img.onload = () => {
           drawFrame(p, scene);
         };
       }
     } else {
-      ctx.fillStyle = scene.bg_color || "#0d0d0f";
+      ctx.fillStyle = scene.bg_color || "#15131A";
       ctx.fillRect(0, 0, w, h);
     }
 
@@ -740,14 +742,14 @@ export default function CanvasRenderer({
     ctx.stroke();
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 11px 'JetBrains Mono', monospace";
+    ctx.font = "bold 11px 'Inter', sans-serif";
     ctx.letterSpacing = "2px";
     ctx.fillText("VYAKHYA CREATOR STUDIO", w / 2, h / 2 - 11);
     ctx.letterSpacing = "0px"; // reset
 
     // Main Headline using modern 'Outfit' font
     ctx.fillStyle = "#ffffff";
-    ctx.font = "600 42px 'Outfit', sans-serif";
+    ctx.font = "600 42px 'Space Grotesk', sans-serif";
     ctx.fillText(s.headline, w / 2, h / 2 + 50 - yOffset);
 
     // Decorative line below headline
@@ -767,7 +769,7 @@ export default function CanvasRenderer({
 
     // Visual Instruction / Theme footer
     ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
-    ctx.font = "500 13px 'JetBrains Mono', monospace";
+    ctx.font = "500 13px 'Inter', sans-serif";
     ctx.fillText(`DIRECTIVE: ${s.visual_instruction.toUpperCase()}`, w / 2, h / 2 + 145);
   };
 
@@ -776,7 +778,7 @@ export default function CanvasRenderer({
     
     // Header Headline using Outfit
     ctx.fillStyle = "#ffffff";
-    ctx.font = "600 30px 'Outfit', sans-serif";
+    ctx.font = "600 30px 'Space Grotesk', sans-serif";
     ctx.fillText(s.headline, w / 2, 75);
 
     const cardW = w / 2 - 80;
@@ -797,7 +799,7 @@ export default function CanvasRenderer({
 
     // Left Title tag
     ctx.fillStyle = "#ffffff";
-    ctx.font = "600 24px 'Outfit', sans-serif";
+    ctx.font = "600 24px 'Space Grotesk', sans-serif";
     ctx.fillText(s.left_label || "Concept A", leftX, cardY + 45 + leftOffset);
 
     // Left comparison illustration (Dynamic Node structure)
@@ -829,7 +831,7 @@ export default function CanvasRenderer({
     ctx.shadowBlur = 0;
 
     ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
-    ctx.font = "500 14px 'JetBrains Mono', monospace";
+    ctx.font = "500 14px 'Inter', sans-serif";
     ctx.fillText("INTEGRATED SYSTEM NODES", leftX, cardY + cardH - 40 + leftOffset);
 
 
@@ -847,7 +849,7 @@ export default function CanvasRenderer({
 
     // Right Title tag
     ctx.fillStyle = "#ffffff";
-    ctx.font = "600 24px 'Outfit', sans-serif";
+    ctx.font = "600 24px 'Space Grotesk', sans-serif";
     ctx.fillText(s.right_label || "Concept B", rightX, cardY + 45 + rightOffset);
 
     // Right comparison illustration (Dynamic orbital shell target structure)
@@ -874,7 +876,7 @@ export default function CanvasRenderer({
     ctx.fill();
 
     ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
-    ctx.font = "500 14px 'JetBrains Mono', monospace";
+    ctx.font = "500 14px 'Inter', sans-serif";
     ctx.fillText("ORBITAL SHELL MODEL", rightX, cardY + cardH - 40 + rightOffset);
 
 
@@ -888,7 +890,7 @@ export default function CanvasRenderer({
     ctx.stroke();
 
     ctx.fillStyle = accent;
-    ctx.font = "bold 15px 'JetBrains Mono', monospace";
+    ctx.font = "bold 15px 'Inter', sans-serif";
     ctx.fillText("VS", w / 2, cardY + cardH / 2 + 1);
   };
 
@@ -897,7 +899,7 @@ export default function CanvasRenderer({
     
     // Title
     ctx.fillStyle = "#ffffff";
-    ctx.font = "600 30px 'Outfit', sans-serif";
+    ctx.font = "600 30px 'Space Grotesk', sans-serif";
     ctx.fillText(s.headline, w / 2, 75);
 
     const bullets = s.bullets || ["Core point one", "Core point two", "Core point three"];
@@ -935,7 +937,7 @@ export default function CanvasRenderer({
 
         // Index indicator with JetBrains Mono
         ctx.fillStyle = `rgba(255, 255, 255, ${0.35 * alpha})`;
-        ctx.font = "500 13px 'JetBrains Mono', monospace";
+        ctx.font = "500 13px 'Inter', sans-serif";
         ctx.textAlign = "left";
         ctx.fillText(`0${index + 1}`, cardX + 30 - xOffset, cardY + 1);
 
@@ -949,7 +951,7 @@ export default function CanvasRenderer({
 
         // Bullet text with Outfit font
         ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-        ctx.font = "500 18px 'Outfit', sans-serif";
+        ctx.font = "500 18px 'Space Grotesk', sans-serif";
         ctx.fillText(bullet, cardX + 85 - xOffset, cardY + 1);
         ctx.textAlign = "center"; // reset
       }
@@ -961,7 +963,7 @@ export default function CanvasRenderer({
 
     // Headline using Outfit
     ctx.fillStyle = "#ffffff";
-    ctx.font = "600 30px 'Outfit', sans-serif";
+    ctx.font = "600 30px 'Space Grotesk', sans-serif";
     ctx.fillText(s.headline, w / 2, 75);
 
     // Split Canvas Left and Right
@@ -1021,12 +1023,12 @@ export default function CanvasRenderer({
 
     // Decorative quote marks with Playfair Display
     ctx.fillStyle = `${accent}18`;
-    ctx.font = "italic bold 100px 'Playfair Display', serif";
+    ctx.font = "italic bold 100px 'Space Grotesk', sans-serif";
     ctx.fillText("“", w / 2 + 35, boxY + 75);
 
     // Headline/Tag
     ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
-    ctx.font = "600 11px 'JetBrains Mono', monospace";
+    ctx.font = "600 11px 'Inter', sans-serif";
     ctx.letterSpacing = "1.5px";
     ctx.fillText("CONCEPTUAL METAPHOR", w / 2 + boxW / 2 - 10, boxY + 35);
     ctx.letterSpacing = "0px";
@@ -1038,7 +1040,7 @@ export default function CanvasRenderer({
     let lines = [];
     const maxWidth = boxW - 80;
 
-    ctx.font = "italic 21px 'Playfair Display', serif";
+    ctx.font = "italic 21px 'Space Grotesk', sans-serif";
     for (let n = 0; n < words.length; n++) {
       let testLine = line + words[n] + " ";
       let metrics = ctx.measureText(testLine);
@@ -1064,7 +1066,7 @@ export default function CanvasRenderer({
 
     // Title
     ctx.fillStyle = "#ffffff";
-    ctx.font = "600 30px 'Outfit', sans-serif";
+    ctx.font = "600 30px 'Space Grotesk', sans-serif";
     ctx.fillText(s.headline, w / 2, 75);
 
     // Extract numerical value
@@ -1108,7 +1110,7 @@ export default function CanvasRenderer({
 
     // Giant stat count-up text
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 82px 'Outfit', sans-serif";
+    ctx.font = "bold 82px 'Space Grotesk', sans-serif";
     ctx.fillText(textToShow, centerX, centerY);
 
     // Label Card below
@@ -1122,7 +1124,7 @@ export default function CanvasRenderer({
     ctx.stroke();
 
     ctx.fillStyle = accent;
-    ctx.font = "600 11px 'JetBrains Mono', monospace";
+    ctx.font = "600 11px 'Inter', sans-serif";
     ctx.letterSpacing = "1.5px";
     ctx.fillText(s.stat_label?.toUpperCase() || "CRITICAL PERFORMANCE INDICATOR", w / 2, labelBoxY + 3);
     ctx.letterSpacing = "0px";
@@ -1132,7 +1134,7 @@ export default function CanvasRenderer({
     const accent = s.accent_color || "#818cf8";
 
     ctx.fillStyle = "#ffffff";
-    ctx.font = "600 30px 'Outfit', sans-serif";
+    ctx.font = "600 30px 'Space Grotesk', sans-serif";
     ctx.fillText(s.headline, w / 2, 75);
 
     const steps = s.steps || ["Stage 1", "Stage 2", "Stage 3", "Stage 4"];
@@ -1182,12 +1184,12 @@ export default function CanvasRenderer({
       ctx.fill();
 
       ctx.fillStyle = isActive ? accent : "rgba(255, 255, 255, 0.4)";
-      ctx.font = "bold 10px 'JetBrains Mono', monospace";
+      ctx.font = "bold 10px 'Inter', sans-serif";
       ctx.fillText(`0${index + 1}`, stepX - 38, centerY - 63);
 
       // Label beneath
       ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
-      ctx.font = isActive ? "bold 15px 'Outfit', sans-serif" : "14px 'Outfit', sans-serif";
+      ctx.font = isActive ? "bold 15px 'Space Grotesk', sans-serif" : "14px 'Space Grotesk', sans-serif";
       ctx.fillText(step, stepX, centerY + 45);
 
       // Small glowing core dot on the track line
@@ -1215,7 +1217,7 @@ export default function CanvasRenderer({
 
     // Giant artistic quote marks with Playfair Display
     ctx.fillStyle = `${accent}22`;
-    ctx.font = "italic bold 180px 'Playfair Display', serif";
+    ctx.font = "italic bold 180px 'Space Grotesk', sans-serif";
     ctx.fillText("“", 180, 240);
 
     // Simple word wrapping for quote
@@ -1225,7 +1227,7 @@ export default function CanvasRenderer({
     let lines = [];
     const maxWidth = w - 320;
 
-    ctx.font = "italic 25px 'Playfair Display', serif";
+    ctx.font = "italic 25px 'Space Grotesk', sans-serif";
     for (let n = 0; n < words.length; n++) {
       let testLine = line + words[n] + " ";
       let metrics = ctx.measureText(testLine);
@@ -1258,7 +1260,7 @@ export default function CanvasRenderer({
       ctx.stroke();
 
       ctx.fillStyle = `rgba(255, 255, 255, ${0.75 * alpha})`;
-      ctx.font = "600 15px 'JetBrains Mono', monospace";
+      ctx.font = "600 15px 'Inter', sans-serif";
       ctx.letterSpacing = "1px";
       ctx.fillText(`— ${s.quote_attribution?.toUpperCase() || "SOURCE UNKNOWN"}`, w / 2, attributionY + 12);
       ctx.letterSpacing = "0px"; // reset
@@ -1280,12 +1282,12 @@ export default function CanvasRenderer({
 
     // Headline with Outfit
     ctx.fillStyle = "#ffffff";
-    ctx.font = "600 42px 'Outfit', sans-serif";
+    ctx.font = "600 42px 'Space Grotesk', sans-serif";
     ctx.fillText(s.headline, w / 2, h / 2 - 50);
 
     // Subtitle complete indicator
     ctx.fillStyle = accent;
-    ctx.font = "bold 13px 'JetBrains Mono', monospace";
+    ctx.font = "bold 13px 'Inter', sans-serif";
     ctx.letterSpacing = "3px";
     ctx.fillText("EXPLAINER SUMMARY", w / 2, h / 2 + 10);
     ctx.letterSpacing = "0px";
@@ -1307,7 +1309,7 @@ export default function CanvasRenderer({
 
     // Little footer brand stamp
     ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.font = "500 13px 'Outfit', sans-serif";
+    ctx.font = "500 13px 'Space Grotesk', sans-serif";
     ctx.fillText("Vyakhya - Professional Storyteller Engine", w / 2, h / 2 + 90);
   };
 
@@ -1365,7 +1367,7 @@ export default function CanvasRenderer({
       }
 
       if (!selectedMimeType) {
-        alert("Your browser doesn't support video recording natively. Please use Chrome, Firefox, or Edge.");
+      showToast("Your browser doesn't support video recording natively. Please use Chrome, Firefox, or Edge.", "error");
         setIsRecording(false);
         return;
       }
@@ -1693,7 +1695,7 @@ export default function CanvasRenderer({
                 <div className="flex flex-wrap gap-2">
                   <button
                     type="button"
-                    onClick={() => { setEditBgColor("#0a0a16"); setEditAccentColor("#6366f1"); }}
+                    onClick={() => { setEditBgColor("#0a0a16"); setEditAccentColor("#3D3A8C"); }}
                     className="bg-zinc-900 border border-zinc-800 hover:bg-zinc-850 px-2 py-1 rounded text-[10px] font-bold text-indigo-400 font-sans cursor-pointer"
                   >
                     Indigo Slate
@@ -1732,10 +1734,36 @@ export default function CanvasRenderer({
                   if (isRegeneratingAudio) return;
                   setIsRegeneratingAudio(true);
                   try {
+                    const activeLanguage = language || "en-IN";
+                    const activePref = voicePreference || "female";
+                    
+                    const getVoiceForPreference = (langCode: string, preference: "male" | "female") => {
+                      const lang = LANGUAGES.find(l => l.code === langCode) || LANGUAGES[0];
+                      const availableVoices = [lang.voiceHost, lang.voiceGuest];
+                      
+                      // Correct Gemini voice genders
+                      const femaleVoices = ["Puck", "Kore", "Aoede"];
+                      const maleVoices = ["Charon", "Fenrir", "Zephyr"];
+                      
+                      const preferredList = preference === "female" ? femaleVoices : maleVoices;
+                      
+                      // Find the first voice in this language that matches the requested gender
+                      const matchedVoice = availableVoices.find(v => preferredList.includes(v));
+                      
+                      // Fallback logic: if neither voice matches the requested gender, default to the host voice
+                      return matchedVoice || lang.voiceHost;
+                    };
+                    
+                    const voiceName = getVoiceForPreference(activeLanguage, activePref);
+
                     const res = await fetch("/api/generate-speech", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ text: editNarration }),
+                      body: JSON.stringify({
+                        text: editNarration,
+                        voice: voiceName,
+                        languageCode: activeLanguage,
+                      }),
                     });
                     if (res.ok) {
                       const data = await res.json();
@@ -1756,14 +1784,14 @@ export default function CanvasRenderer({
                           return s;
                         });
                         if (onUpdateScenes) onUpdateScenes(updated);
-                        alert("Speech generated successfully!");
+                        showToast("Speech generated successfully!", "success");
                       }
                     } else {
-                      alert("Could not generate audio. Using browser-native TTS as fallback.");
+                      showToast("Could not generate audio. Using browser-native TTS as fallback.", "error");
                     }
                   } catch (e) {
                     console.error(e);
-                    alert("Failed to generate speech. Fallback will narrate natively.");
+                    showToast("Failed to generate speech. Fallback will narrate natively.", "error");
                   } finally {
                     setIsRegeneratingAudio(false);
                   }
@@ -1785,7 +1813,7 @@ export default function CanvasRenderer({
                     accent_color: editAccentColor,
                   }));
                   if (onUpdateScenes) onUpdateScenes(updated);
-                  alert("Theme colors propagated to all storyboard scenes!");
+                  showToast("Theme colors propagated to all storyboard scenes!", "success");
                 }}
                 className="border border-zinc-800 hover:bg-zinc-900 text-zinc-300 font-bold px-3 py-1.5 rounded-xl text-xs transition font-sans cursor-pointer"
               >
@@ -1810,7 +1838,7 @@ export default function CanvasRenderer({
                   return s;
                 });
                 if (onUpdateScenes) onUpdateScenes(updated);
-                alert("Scene changes saved!");
+                showToast("Scene changes saved!", "success");
               }}
               className="bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-extrabold px-4 py-2 rounded-xl text-xs transition font-sans cursor-pointer"
             >

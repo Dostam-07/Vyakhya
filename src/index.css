@@ -1,20 +1,78 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;1,400&family=Playfair+Display:ital,wght@0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Sans+Devanagari:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @variant dark (&:where(.dark, .dark *));
 
+@theme {
+  --color-vyakhya-ink: #15131A;
+  --color-vyakhya-parchment: #FAF7F0;
+  --color-vyakhya-saffron: #FF7A33;
+  --color-vyakhya-indigo: #3D3A8C;
+  --color-vyakhya-sprout: #3FAE6B;
+  --color-vyakhya-marigold: #FFC845;
+
+  --font-display: "Space Grotesk", "Noto Sans Devanagari", "Noto Sans Tamil", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Inter", "Noto Sans Devanagari", "Noto Sans Tamil", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-glow: 0 0 20px 0 rgba(255, 122, 51, 0.4);
+}
+
+@utility text-display-1 {
+  @apply font-display text-4xl sm:text-5xl font-bold tracking-tight;
+}
+@utility text-display-2 {
+  @apply font-display text-2xl sm:text-3xl font-bold tracking-tight;
+}
+@utility text-heading {
+  @apply font-sans text-lg font-bold tracking-tight;
+}
+@utility text-body {
+  @apply font-sans text-base leading-relaxed;
+}
+@utility text-caption {
+  @apply font-sans text-xs uppercase tracking-wider font-semibold text-zinc-500;
+}
+
 @layer base {
   :root {
-    --background: #ffffff;
-    --text: #18181b;
+    --background: var(--color-vyakhya-parchment);
+    --text: var(--color-vyakhya-ink);
+    --border-radius-sm: 6px;
+    --border-radius-md: 12px;
+    --border-radius-lg: 20px;
   }
   .dark {
-    --background: #09090b;
-    --text: #f4f4f5;
+    --background: var(--color-vyakhya-ink);
+    --text: var(--color-vyakhya-parchment);
   }
   body {
     background-color: var(--background);
     color: var(--text);
+    font-family: var(--font-sans);
+  }
+  
+  /* Noise overlay for light mode */
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 9999;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+  
+  /* Radial vignette for dark mode */
+  .dark body::after {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 9998;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%);
   }
 }
 

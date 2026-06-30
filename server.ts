@@ -515,7 +515,17 @@ app.post("/api/generate-script", async (req, res) => {
       return res.status(400).json({ error: "Prompt, document text or URL is required" });
     }
 
-    const langLabel = language || "English";
+    const languageMap: Record<string, string> = {
+      "en-IN": "English",
+      "hi-IN": "Hindi",
+      "ta-IN": "Tamil",
+      "te-IN": "Telugu",
+      "bn-IN": "Bengali",
+      "mr-IN": "Marathi",
+      "ml-IN": "Malayalam",
+      "gu-IN": "Gujarati"
+    };
+    const targetLanguageName = languageMap[language] || language || "English";
     const styleLabel = style || "simple";
     const lenLabel = length || "short";
     const voiceLabel = voicePreference || "female";
@@ -542,7 +552,7 @@ app.post("/api/generate-script", async (req, res) => {
     }
 
     const userPrompt = `Generate a video explainer script about: "${topic || "the uploaded document/URL"}"
-Language: ${langLabel}
+Language: ${targetLanguageName}
 Style: ${styleLabel}
 Duration Target: ${durationLabel}
 Voice Gender Preference: ${voiceLabel}
@@ -565,7 +575,7 @@ ${contextText}`;
 Create a structured, scene-by-scene script for an animated explainer video.
 Follow these constraints strictly:
 1. The explanation must strictly match the user's requested topic and answer any specific questions, focus points, or guidelines they asked for.
-2. Narration must be simple, conversational, and highly engaging in English. Do NOT use the word "Namaste" anywhere in the greeting or narration. Always start greetings with "Hello" or another friendly English greeting.
+2. Narration and headlines must be entirely in ${targetLanguageName}. The text, narration script, and slide content MUST be written in the natural native script of ${targetLanguageName} (for example, Devanagari script for Hindi, Tamil script for Tamil, etc.). Do not write in romanized/transliterated form (e.g. do not write 'Namaste' in english characters for Hindi, write 'नमस्ते' in Devanagari script). Use locally natural greetings and idioms appropriate for ${targetLanguageName} speakers — do not force English conventions. The narration style must be simple, conversational, and highly engaging.
 3. ${sceneGuidance}
 4. Ensure rich visual imagery, descriptions of animations, and graphical elements are included for each scene.
 5. For EACH scene, provide a detailed, descriptive 'image_description' field that explains the visual content, composition, and style of the image for that scene.
@@ -667,7 +677,17 @@ app.post("/api/generate-podcast", async (req, res) => {
       return res.status(400).json({ error: "Topic is required" });
     }
 
-    const langLabel = language || "English";
+    const languageMap: Record<string, string> = {
+      "en-IN": "English",
+      "hi-IN": "Hindi",
+      "ta-IN": "Tamil",
+      "te-IN": "Telugu",
+      "bn-IN": "Bengali",
+      "mr-IN": "Marathi",
+      "ml-IN": "Malayalam",
+      "gu-IN": "Gujarati"
+    };
+    const targetLanguageName = languageMap[language] || language || "English";
     const styleLabel = style || "simple";
     const lenLabel = length || "short";
 
@@ -685,7 +705,7 @@ app.post("/api/generate-podcast", async (req, res) => {
     }
 
     const userPrompt = `Generate a dual-speaker podcast conversation discussing: "${topic || "the uploaded document/URL"}"
-Language: ${langLabel}
+Language: ${targetLanguageName}
 Style: ${styleLabel}
 Length Category: ${lenLabel} (short: ~10 turns, medium: ~20 turns, deep: ~30 turns)${contextText}`;
 
@@ -697,7 +717,7 @@ Length Category: ${lenLabel} (short: ~10 turns, medium: ~20 turns, deep: ~30 tur
 Create a highly engaging, educational conversational dialogue between Joe (the host) and Jane (the guest expert).
 Follow these constraints strictly:
 1. The podcast conversation must strictly match the user's requested topic and answer any direct questions or guidelines they specified. Avoid unrelated banter or generalities.
-2. The podcast dialogue must be entirely in English. Do NOT use the word "Namaste" anywhere in the conversation or greetings. Any opening greeting must start with "Hello" or another standard English greeting.
+2. The podcast dialogue must be entirely in ${targetLanguageName}. The dialogue script and content MUST be written in the natural native script of ${targetLanguageName} (for example, Devanagari script for Hindi, Tamil script for Tamil, etc.). Do not write in romanized/transliterated form (e.g. do not write 'Namaste' in english characters for Hindi, write 'नमस्ते' in Devanagari script). Use locally natural greetings and idioms appropriate for ${targetLanguageName} speakers — do not force English greeting conventions.
 3. Joe is curious, relatable, asking smart questions.
 4. Jane is highly knowledgeable, breaks down complex topics with brilliant analogies, and speaks clearly and friendly.
 5. Ensure that Jane's expert explanations and Joe's questions directly address the core technical or conceptual details of the user's prompt in high fidelity.
@@ -741,21 +761,33 @@ Follow these constraints strictly:
 // Text-to-Speech API proxying Gemini TTS with WAV headers
 app.post("/api/generate-speech", async (req, res) => {
   try {
-    const { text, voice } = req.body;
+    const { text, voice, languageCode } = req.body;
     if (!text) {
       return res.status(400).json({ error: "Text is required" });
     }
 
-    // Recommended prebuilt voice configurations
-    // Recommended prebuilt voice configurations
-    // 'Puck' (Guest/Jane) or 'Kore' (Host/Joe) or 'Fenrir', 'Zephyr', 'Charon'
     const voiceName = voice || "Kore";
+    const lang = languageCode || "en-IN";
+
+    const LANGUAGE_GUIDANCE: Record<string, string> = {
+      "en-IN": "Speak in natural, warm, conversational Indian English with correct pronunciation and pacing.",
+      "hi-IN": "Speak in natural, fluent, native Hindi (हिन्दी) with a warm Indian accent, correct pronunciation, and proper pacing. Please pronounce Devanagari characters accurately.",
+      "ta-IN": "Speak in natural, fluent, native Tamil (தமிழ்) with proper accent, correct pronunciation, and pacing.",
+      "te-IN": "Speak in natural, fluent, native Telugu (తెలుగు) with proper accent, correct pronunciation, and pacing.",
+      "bn-IN": "Speak in natural, fluent, native Bengali (বাংলা) with proper accent, correct pronunciation, and pacing.",
+      "mr-IN": "Speak in natural, fluent, native Marathi (मराठी) with proper accent, correct pronunciation, and pacing.",
+      "ml-IN": "Speak in natural, fluent, native Malayalam (മലയാളം) with proper accent, correct pronunciation, and pacing.",
+      "gu-IN": "Speak in natural, fluent, native Gujarati (ગુજરાતી) with proper accent, correct pronunciation, and pacing."
+    };
+
+    const sysInstruction = LANGUAGE_GUIDANCE[lang] || LANGUAGE_GUIDANCE["en-IN"];
 
     const response = await retryWithBackoff(() =>
       getAI().models.generateContent({
         model: "gemini-3.1-flash-tts-preview",
         contents: [{ role: "user", parts: [{ text: text }] }],
         config: {
+          systemInstruction: sysInstruction,
           responseModalities: ["AUDIO"],
           speechConfig: {
             voiceConfig: {
@@ -1587,6 +1619,17 @@ wss.on("connection", async (clientWs, req) => {
     const urlObj = new URL(req.url || "", `http://${req.headers.host || "localhost"}`);
     const contextScript = urlObj.searchParams.get("context") || "";
     const language = urlObj.searchParams.get("language") || "en-IN";
+    const languageMap: Record<string, string> = {
+      "en-IN": "English",
+      "hi-IN": "Hindi",
+      "ta-IN": "Tamil",
+      "te-IN": "Telugu",
+      "bn-IN": "Bengali",
+      "mr-IN": "Marathi",
+      "ml-IN": "Malayalam",
+      "gu-IN": "Gujarati"
+    };
+    const targetLanguageName = languageMap[language] || "English";
 
     const ai = getAI();
     const session = await ai.live.connect({
@@ -1601,13 +1644,13 @@ wss.on("connection", async (clientWs, req) => {
           }
         },
         systemInstruction: `You are Vya, an expert tutor who just narrated a highly educational lesson to this student.
-You speak naturally, warmly, and encouragingly in English only. Do NOT use the word "Namaste" anywhere in the conversation or greetings. Always start greetings with "Hello" or another standard English greeting.
+You speak naturally, warmly, and encouragingly in ${targetLanguageName} using its natural script. Use locally natural greetings and idioms — do not force English conventions.
 The lesson script you narrated is:
 ---
 ${contextScript.slice(0, 5000)}
 ---
 Help the student by explaining concepts further, answering questions about this lesson, or providing simple analogies.
-Always answer the student's spoken questions about this content in English. Keep your spoken answers under 3 concise sentences. Be extremely warm and helpful.`
+Always answer the student's spoken questions about this content in ${targetLanguageName}. Keep your spoken answers under 3 concise sentences. Be extremely warm and helpful.`
       },
       callbacks: {
         onmessage: (message: any) => {

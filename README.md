@@ -23,6 +23,7 @@ With built-in quizzes, micro-flashcards, contextual doubt-solving, and a live **
 *   **Interactive Real-Time Rendering:** Watch dynamically synchronized audio narration, custom illustrations, highlights, and bullet points on a high-performance HTML5 Canvas.
 *   **Animated Slide Transitions:** Premium visual cuts including **Fade Cross, Slide Left, Slide Right, and Zoom In** for visual continuity.
 *   **Smart Karaoke Subtitles:** On-canvas, highly synchronized subtitle banners with word-by-word karaoke-style highlighting to boost multi-sensory comprehension.
+*   **PowerPoint Export:** Export your storyboard narrations and scenes directly into formatted `.pptx` presentations using customizable master themes.
 *   **Offline Video Export & SRT Downloader:** Record and export storyboard render tracks directly as `.webm` / `.mp4` video files with companion `.srt` closed-caption track sheets.
 
 ### 🧠 3. Built-In Personalized Study Hub
@@ -120,6 +121,8 @@ service cloud.firestore {
 
 ## 💎 Features Checklist & Roadmap Implementation
 We've successfully executed our **Phase 1 Strategy**, optimizing existing stability and introducing highly requested features:
+*   [x] **PowerPoint Export:** Direct generation of `.pptx` slide decks from storyboard scenes.
+*   [x] **Styling & Theming:** Implemented "Space Grotesk" typography and high-contrast, professional "Ink" color palette for a refined, modern UI.
 *   [x] **Robust File Parser Compatibility:** Seamlessly parse `.docx`, `.pdf`, and `.pptx` (PowerPoint) slide deck context directly on the Node.js backend.
 *   [x] **Smart Canvas Captions:** Styled bottom overlays with real-time text parsing that keeps captions beautifully highlighted alongside runtime audio.
 *   [x] **Dynamic Storyboard Customizer:** Real-time controls allowing creators to adjust scene headlines, scripts, background hex codes, accent colors, and custom transitions on-the-fly.

@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { HashRouter as Router, Routes, Route, useNavigate, useParams, useLocation } from "react-router-dom";
 import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
-import Navbar from "./components/Navbar";
+import { ToastProvider, useToast } from "./contexts/ToastContext";
+import AppLayout from "./components/AppLayout";
 import CreationForm from "./components/CreationForm";
-import DiscoverFeed from "./components/DiscoverFeed";
+import DiscoverPage from "./components/DiscoverPage";
 import WatchPage from "./components/WatchPage";
 import LibraryPage from "./components/LibraryPage";
+import LearnPage from "./components/LearnPage";
+import ProfilePage from "./components/ProfilePage";
 import NameModal from "./components/NameModal";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -13,7 +16,7 @@ import { auth, db } from "./lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
 import { Sparkles, Brain, Mic, Film, CheckCircle2, AlertCircle, ArrowRight, Compass, Pencil, Plus, Trash2, ArrowUp, ArrowDown, Check, Save, RotateCcw, Clock, Eye, Presentation, Zap } from "lucide-react";
 import { Scene, Explainer, PodcastTurn, LANGUAGES } from "./types";
-import { exportReviewedScenesToPPTX } from "./lib/pptxExport";
+import { exportReviewedScenesToPPTX, PPTX_THEMES } from "./lib/pptxExport";
 
 // Create QueryClient instance for TanStack Query integration
 const queryClient = new QueryClient();
@@ -36,10 +39,8 @@ function StudioPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-300 pb-16">
-      <Navbar />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+    <div className="w-full space-y-12">
+      <div className="max-w-7xl mx-auto space-y-12">
         {/* Hero Tagline */}
         <div className="text-center max-w-2xl mx-auto py-6 select-none">
           <span className="bg-indigo-500/10 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider font-mono">
@@ -67,7 +68,7 @@ function StudioPage() {
 
           <div className="lg:col-span-5 h-full space-y-6">
             {/* Visual guide card */}
-            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 rounded-2xl p-6 sm:p-8 flex flex-col justify-between h-full shadow-lg select-none">
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 rounded-2xl p-6 sm:p-8 flex flex-col justify-between h-full shadow-lg dark:shadow-glow select-none">
               <div className="space-y-4">
                 <span className="text-[11px] font-bold uppercase font-mono tracking-widest text-indigo-600 dark:text-indigo-400">Vyakhya Pipeline</span>
                 <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 leading-tight">Dynamic AI-Generated Vector Stages</h3>
@@ -107,15 +108,6 @@ function StudioPage() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Discovery Feed panel */}
-        <div className="border-t border-zinc-200 dark:border-zinc-900/60 pt-10">
-          <div className="flex items-center gap-2 mb-6">
-            <Compass className="w-5 h-5 text-indigo-600 dark:text-indigo-500" />
-            <h2 className="text-lg font-extrabold text-zinc-800 dark:text-zinc-200 uppercase tracking-wider">Explore Public Curation</h2>
-          </div>
-          <DiscoverFeed />
         </div>
       </div>
     </div>
@@ -370,7 +362,7 @@ function ScenePreviewCard({ scene, replayTrigger, onReplay }: ScenePreviewCardPr
           <div className="flex flex-col gap-1 w-full mt-1.5">
             {(scene.bullets && scene.bullets.length > 0 ? scene.bullets.slice(0, 3) : ["Key Aspect", "Supporting Detail", "Conclusion Node"]).map((bullet, idx) => (
               <div key={idx} className="flex items-center gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: scene.accent_color || "#6366f1" }}></div>
+                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: scene.accent_color || "#3D3A8C" }}></div>
                 <span className="text-[10px] text-zinc-300 truncate max-w-full">{bullet}</span>
               </div>
             ))}
@@ -379,7 +371,7 @@ function ScenePreviewCard({ scene, replayTrigger, onReplay }: ScenePreviewCardPr
       case "data_stat":
         return (
           <div className="flex flex-col items-center justify-center h-16 w-full text-center mt-1 bg-zinc-900/40 rounded border border-zinc-800/50 p-1">
-            <span className="text-lg font-black tracking-tight" style={{ color: scene.accent_color || "#6366f1" }}>
+            <span className="text-lg font-black tracking-tight" style={{ color: scene.accent_color || "#3D3A8C" }}>
               {scene.stat_value || "94%"}
             </span>
             <span className="text-[9px] text-zinc-400 font-mono tracking-wider uppercase truncate max-w-full">
@@ -392,7 +384,7 @@ function ScenePreviewCard({ scene, replayTrigger, onReplay }: ScenePreviewCardPr
           <div className="flex items-center justify-between w-full mt-3 px-2">
             {(scene.steps && scene.steps.length > 0 ? scene.steps.slice(0, 3) : ["Initiation", "Execution", "Completion"]).map((step, idx) => (
               <div key={idx} className="flex flex-col items-center gap-1 flex-1 relative">
-                <div className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white bg-zinc-800 border" style={{ borderColor: scene.accent_color || "#6366f1" }}>
+                <div className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white bg-zinc-800 border" style={{ borderColor: scene.accent_color || "#3D3A8C" }}>
                   {idx + 1}
                 </div>
                 <span className="text-[8px] text-zinc-400 truncate max-w-[50px]">{step}</span>
@@ -402,7 +394,7 @@ function ScenePreviewCard({ scene, replayTrigger, onReplay }: ScenePreviewCardPr
         );
       case "quote_card":
         return (
-          <div className="border-l-2 pl-2 mt-1.5 italic text-zinc-300 text-[10px] space-y-1.5" style={{ borderColor: scene.accent_color || "#6366f1" }}>
+          <div className="border-l-2 pl-2 mt-1.5 italic text-zinc-300 text-[10px] space-y-1.5" style={{ borderColor: scene.accent_color || "#3D3A8C" }}>
             <p className="line-clamp-2">"{scene.quote_text || "Complex ideas made visually simple."}"</p>
             {scene.quote_attribution && (
               <p className="text-[8px] text-zinc-500 font-bold not-italic">— {scene.quote_attribution}</p>
@@ -504,6 +496,7 @@ function ProgressPage() {
   const { jobId } = useParams<{ jobId: string }>();
   const navigate = useNavigate();
   const { state } = useLocation();
+  const { showToast } = useToast();
 
   const [currentStage, setCurrentStage] = useState<"scripting" | "reviewing" | "narrating" | "compiling" | "error">("scripting");
   const [showPreview, setShowPreview] = useState(false);
@@ -514,6 +507,7 @@ function ProgressPage() {
   const [scriptDataState, setScriptDataState] = useState<any>(null);
   const [reviewedTitle, setReviewedTitle] = useState<string>("");
   const [reviewedScenes, setReviewedScenes] = useState<Scene[]>([]);
+  const [selectedPPTXTheme, setSelectedPPTXTheme] = useState<string>("modern_minimal");
   const [reviewedTurns, setReviewedTurns] = useState<PodcastTurn[]>([]);
   const [replayTriggers, setReplayTriggers] = useState<Record<string, number>>({});
 
@@ -650,7 +644,7 @@ function ProgressPage() {
 
   const handleDeleteScene = (index: number) => {
     if (reviewedScenes.length <= 1) {
-      alert("An explainer must have at least one scene!");
+      showToast("An explainer must have at least one scene!", "error");
       return;
     }
     setReviewedScenes((prev) => prev.filter((_, i) => i !== index));
@@ -658,7 +652,7 @@ function ProgressPage() {
 
   const handleDeleteTurn = (index: number) => {
     if (reviewedTurns.length <= 1) {
-      alert("A podcast must have at least one dialogue turn!");
+      showToast("A podcast must have at least one dialogue turn!", "error");
       return;
     }
     setReviewedTurns((prev) => prev.filter((_, i) => i !== index));
@@ -690,18 +684,19 @@ function ProgressPage() {
 
   const getVoiceForPreference = (langCode: string, preference: "male" | "female") => {
     const lang = LANGUAGES.find(l => l.code === langCode) || LANGUAGES[0];
-    const voices = [lang.voiceHost, lang.voiceGuest];
-    const femaleVoices = ["Puck", "Charon"];
-    const maleVoices = ["Kore", "Fenrir", "Zephyr"];
-    if (preference === "female") {
-      const found = voices.find(v => femaleVoices.includes(v));
-      if (found) return found;
-      return femaleVoices.includes(lang.voiceGuest) ? lang.voiceGuest : "Puck";
-    } else {
-      const found = voices.find(v => maleVoices.includes(v));
-      if (found) return found;
-      return maleVoices.includes(lang.voiceHost) ? lang.voiceHost : "Kore";
-    }
+    const availableVoices = [lang.voiceHost, lang.voiceGuest];
+    
+    // Correct Gemini voice genders
+    const femaleVoices = ["Puck", "Kore", "Aoede"];
+    const maleVoices = ["Charon", "Fenrir", "Zephyr"];
+    
+    const preferredList = preference === "female" ? femaleVoices : maleVoices;
+    
+    // Find the first voice in this language that matches the requested gender
+    const matchedVoice = availableVoices.find(v => preferredList.includes(v));
+    
+    // Fallback logic: if neither voice matches the requested gender, default to the host voice
+    return matchedVoice || lang.voiceHost;
   };
 
   const handleApproveAndSynthesize = async () => {
@@ -748,6 +743,7 @@ function ProgressPage() {
               body: JSON.stringify({
                 text: scene.narration,
                 voice: voiceName,
+                languageCode: language,
               }),
             });
 
@@ -796,6 +792,7 @@ function ProgressPage() {
               body: JSON.stringify({
                 text: turn.text,
                 voice: turn.speaker === "host" ? hostVoice : guestVoice,
+                languageCode: language,
               }),
             });
 
@@ -838,6 +835,33 @@ function ProgressPage() {
         }
       } catch (lyriaErr) {
         console.warn("Lyria soundtrack generation skipped or failed:", lyriaErr);
+      }
+
+      // --- STAGE 2.6: Generate Scene Thumbnails for PPT / UI ---
+      if (format === "video" && updatedScriptData.scenes) {
+        setLogText("Pre-generating scene artwork illustrations...");
+        await Promise.allSettled(updatedScriptData.scenes.map(async (scene) => {
+          try {
+            const thumbRes = await fetch("/api/generate-scene-thumbnail", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                headline: scene.headline,
+                visualInstruction: scene.visual_instruction,
+                bgColor: scene.bg_color,
+                accentColor: scene.accent_color,
+              }),
+            });
+            if (thumbRes.ok) {
+              const data = await thumbRes.json();
+              if (data.imageBase64) {
+                 scene.imageUrl = `data:${data.mimeType};base64,${data.imageBase64}`;
+              }
+            }
+          } catch(e) {
+            console.warn("Thumbnail generation failed for scene", scene.id, e);
+          }
+        }));
       }
 
       // --- STAGE 3: Compiling Caching ---
@@ -924,10 +948,8 @@ function ProgressPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white flex flex-col justify-between">
-      <Navbar />
-
-      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-12">
+    <div className="w-full flex flex-col justify-between">
+      <div className="flex-1 flex flex-col items-center justify-center py-4">
         {currentStage === "reviewing" ? (
           <div className="w-full max-w-4xl bg-zinc-900/60 border border-zinc-850 rounded-2xl p-6 sm:p-8 space-y-6 shadow-2xl backdrop-blur-md">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-zinc-800 pb-4 gap-2">
@@ -1233,15 +1255,28 @@ function ProgressPage() {
               
               <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-3 items-center">
                 {state?.format === "video" && reviewedScenes.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => exportReviewedScenesToPPTX(reviewedScenes, reviewedTitle || "Presentation")}
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500 bg-white dark:bg-zinc-900/60 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-300 font-bold px-6 py-3 rounded-xl text-sm transition active:scale-95 cursor-pointer shadow-sm"
-                    title="Download current storyboard slides as a PowerPoint presentation file"
-                  >
-                    <Presentation className="w-4.5 h-4.5 text-orange-500 dark:text-orange-400" />
-                    <span>Download as PowerPoint (.pptx)</span>
-                  </button>
+                  <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto bg-zinc-50 dark:bg-zinc-900/40 p-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800">
+                    <select
+                      value={selectedPPTXTheme}
+                      onChange={(e) => setSelectedPPTXTheme(e.target.value)}
+                      className="bg-transparent text-xs text-zinc-600 dark:text-zinc-400 focus:outline-none px-2.5 py-1 font-semibold border-r border-zinc-200 dark:border-zinc-800"
+                    >
+                      {Object.entries(PPTX_THEMES).map(([key, theme]) => (
+                        <option key={key} value={key} className="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200">
+                          {theme.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => exportReviewedScenesToPPTX(reviewedScenes, reviewedTitle || "Presentation", selectedPPTXTheme)}
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 text-zinc-700 dark:text-zinc-300 font-bold px-4 py-2 rounded-lg text-xs transition active:scale-95 cursor-pointer"
+                      title="Download current storyboard slides as a PowerPoint presentation file"
+                    >
+                      <Presentation className="w-4 h-4 text-orange-500 dark:text-orange-400" />
+                      <span>Download PPTX</span>
+                    </button>
+                  </div>
                 )}
                 <button
                   onClick={handleApproveAndSynthesize}
@@ -1354,7 +1389,9 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <ThemeAwareApp userName={userName} handleSaveName={handleSaveName} />
+        <ToastProvider>
+          <ThemeAwareApp userName={userName} handleSaveName={handleSaveName} />
+        </ToastProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
@@ -1365,14 +1402,18 @@ function ThemeAwareApp({ userName, handleSaveName }: { userName: string | null; 
     <>
       {!userName && <NameModal onSave={handleSaveName} />}
       <Router>
-        <Routes>
-          <Route path="/" element={<StudioPage />} />
-          <Route path="/create/:jobId" element={<ProgressPage />} />
-          <Route path="/watch/:id" element={<WatchPage />} />
-          <Route path="/discover" element={<StudioPage />} /> {/* Handled inline */}
-          <Route path="/library" element={<LibraryPage />} />
-          <Route path="/analytics" element={<AnalyticsDashboard />} />
-        </Routes>
+        <AppLayout>
+          <Routes>
+            <Route path="/" element={<StudioPage />} />
+            <Route path="/create/:jobId" element={<ProgressPage />} />
+            <Route path="/watch/:id" element={<WatchPage />} />
+            <Route path="/discover" element={<DiscoverPage />} />
+            <Route path="/library" element={<LibraryPage />} />
+            <Route path="/learn" element={<LearnPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/analytics" element={<AnalyticsDashboard />} />
+          </Routes>
+        </AppLayout>
       </Router>
     </>
   );

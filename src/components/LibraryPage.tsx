@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Explainer } from "../types";
 import { auth, db } from "../lib/firebase";
 import { collection, query, where, getDocs, deleteDoc, doc } from "firebase/firestore";
-import Navbar from "./Navbar";
+import ConfirmModal from "./ConfirmModal";
 import { Library, Trash2, PlayCircle, Podcast, Video, ExternalLink, RefreshCw, Bookmark, Sparkles, FolderOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -56,55 +56,87 @@ export default function LibraryPage() {
     fetchLibrary();
   }, []);
 
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
+
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
 
     if (activeTab === "history") {
-      if (!window.confirm("Remove this item from your watch history?")) return;
-      try {
-        const updatedHistory = historyItems.filter((item) => item.id !== id);
-        localStorage.setItem("vyakhya_history", JSON.stringify(updatedHistory));
-        setHistoryItems(updatedHistory);
-      } catch (err) {
-        console.error("Error removing history entry:", err);
-      }
+      setConfirmModal({
+        isOpen: true,
+        title: "Remove from History",
+        message: "Remove this item from your watch history?",
+        onConfirm: () => {
+          try {
+            const updatedHistory = historyItems.filter((item) => item.id !== id);
+            localStorage.setItem("vyakhya_history", JSON.stringify(updatedHistory));
+            setHistoryItems(updatedHistory);
+          } catch (err) {
+            console.error("Error removing history entry:", err);
+          }
+          setConfirmModal(prev => ({ ...prev, isOpen: false }));
+        }
+      });
       return;
     }
 
-    if (!window.confirm("Are you sure you want to delete this generation from your library?")) return;
+    setConfirmModal({
+      isOpen: true,
+      title: "Delete Generation",
+      message: "Are you sure you want to delete this generation from your library?",
+      onConfirm: async () => {
+        try {
+          console.log("LibraryPage: Deleting", id);
+          // 1. Delete from Firestore if exists
+          await deleteDoc(doc(db, "explainers", id)).catch((err) => console.log("Firestore delete error/bypass:", err));
+          console.log("LibraryPage: Deleted from Firestore", id);
 
-    try {
-      console.log("LibraryPage: Deleting", id);
-      // 1. Delete from Firestore if exists
-      await deleteDoc(doc(db, "explainers", id)).catch((err) => console.log("Firestore delete error/bypass:", err));
-      console.log("LibraryPage: Deleted from Firestore", id);
+          // 2. Delete from LocalStorage
+          const localGenerations = JSON.parse(localStorage.getItem("vyakhya_generations") || "[]");
+          const updatedLocal = localGenerations.filter((item: Explainer) => item.id !== id);
+          localStorage.setItem("vyakhya_generations", JSON.stringify(updatedLocal));
 
-      // 2. Delete from LocalStorage
-      const localGenerations = JSON.parse(localStorage.getItem("vyakhya_generations") || "[]");
-      const updatedLocal = localGenerations.filter((item: Explainer) => item.id !== id);
-      localStorage.setItem("vyakhya_generations", JSON.stringify(updatedLocal));
+          // 3. Add to deleted tracking list
+          const deletedIds = JSON.parse(localStorage.getItem("vyakhya_deleted_ids") || "[]");
+          if (!deletedIds.includes(id)) {
+            deletedIds.push(id);
+            localStorage.setItem("vyakhya_deleted_ids", JSON.stringify(deletedIds));
+          }
 
-      // 3. Add to deleted tracking list
-      const deletedIds = JSON.parse(localStorage.getItem("vyakhya_deleted_ids") || "[]");
-      if (!deletedIds.includes(id)) {
-        deletedIds.push(id);
-        localStorage.setItem("vyakhya_deleted_ids", JSON.stringify(deletedIds));
+          setMyGenerations(myGenerations.filter((item) => item.id !== id));
+        } catch (err) {
+          console.error("Error deleting explainer:", err);
+        }
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
       }
-
-      setMyGenerations(myGenerations.filter((item) => item.id !== id));
-    } catch (err) {
-      console.error("Error deleting explainer:", err);
-    }
+    });
   };
 
   const handleClearHistory = () => {
-    if (!window.confirm("Are you sure you want to clear your entire watch history? This action cannot be undone.")) return;
-    try {
-      localStorage.removeItem("vyakhya_history");
-      setHistoryItems([]);
-    } catch (err) {
-      console.error("Error clearing history:", err);
-    }
+    setConfirmModal({
+      isOpen: true,
+      title: "Clear Watch History",
+      message: "Are you sure you want to clear your entire watch history? This action cannot be undone.",
+      onConfirm: () => {
+        try {
+          localStorage.removeItem("vyakhya_history");
+          setHistoryItems([]);
+        } catch (err) {
+          console.error("Error clearing history:", err);
+        }
+        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+      }
+    });
   };
 
   const currentList = activeTab === "generations" 
@@ -114,10 +146,15 @@ export default function LibraryPage() {
     : historyItems;
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white pb-16">
-      <Navbar />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 select-none">
+    <div className="w-full pb-16">
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        title={confirmModal.title}
+        message={confirmModal.message}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+      />
+      <div className="max-w-7xl mx-auto py-8 select-none">
         {/* Header Title */}
         <div className="flex items-center gap-3.5 mb-8">
           <div className="bg-indigo-600/15 border border-indigo-500/30 text-indigo-400 p-2.5 rounded-xl">
@@ -207,7 +244,7 @@ export default function LibraryPage() {
               <div
                 key={item.id}
                 onClick={() => navigate(`/watch/${item.id}`)}
-                className="group relative flex flex-col bg-zinc-950 border border-zinc-900 hover:border-indigo-500/40 hover:-translate-y-0.5 rounded-xl overflow-hidden cursor-pointer shadow-lg transition duration-200"
+                className="group relative flex flex-col bg-zinc-950 border border-zinc-900 hover:border-indigo-500/40 hover:-translate-y-0.5 rounded-xl overflow-hidden cursor-pointer shadow-lg dark:shadow-glow transition duration-200"
               >
                 {/* Wallpaper Card */}
                 <div className="relative aspect-video bg-zinc-900/70 border-b border-zinc-900 flex items-center justify-center">

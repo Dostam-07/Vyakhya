@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { STYLES, LENGTHS } from "../types";
+import { LANGUAGES, STYLES, LENGTHS } from "../types";
 import { Sparkles, FileText, Link as LinkIcon, HelpCircle, FileUp, Settings, Podcast, Video, Volume2, Zap, Image as ImageIcon } from "lucide-react";
+import { useToast } from "../contexts/ToastContext";
 
 interface CreationFormProps {
   onSubmit: (formData: {
@@ -22,6 +23,8 @@ interface CreationFormProps {
 }
 
 export default function CreationForm({ onSubmit, isLoading, initialTopic = "", initialLength = "short" }: CreationFormProps) {
+  const { showToast } = useToast();
+  const [step, setStep] = useState<1 | 2>(1);
   const [activeTab, setActiveTab] = useState<"topic" | "document" | "url" | "image">("topic");
   const [topic, setTopic] = useState(initialTopic);
   const [documentText, setDocumentText] = useState("");
@@ -30,16 +33,22 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
   const [mimeType, setMimeType] = useState<string>("");
   const [imagePreview, setImagePreview] = useState<string>("");
   
-  const language = "en-IN";
+  const [language, setLanguage] = useState<string>(() => {
+    return localStorage.getItem("vyakhya_language") || "en-IN";
+  });
   const [style, setStyle] = useState("simple");
   const [length, setLength] = useState(initialLength);
   const [format, setFormat] = useState<"video" | "podcast">("video");
   const [voiceEngine, setVoiceEngine] = useState<"gemini" | "browser">(() => {
-    return (localStorage.getItem("vyakhya_voice_engine") as "gemini" | "browser") || "browser";
+    return (localStorage.getItem("vyakhya_voice_engine") as "gemini" | "browser") || "gemini";
   });
   const [voicePreference, setVoicePreference] = useState<"male" | "female">(() => {
     return (localStorage.getItem("vyakhya_voice_preference") as "male" | "female") || "female";
   });
+
+  React.useEffect(() => {
+    localStorage.setItem("vyakhya_language", language);
+  }, [language]);
 
   React.useEffect(() => {
     localStorage.setItem("vyakhya_voice_engine", voiceEngine);
@@ -53,6 +62,39 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
     if (initialTopic) setTopic(initialTopic);
     if (initialLength) setLength(initialLength);
   }, [initialTopic, initialLength]);
+
+  const handlePreviewVoice = () => {
+    try {
+      const isHindi = language.startsWith("hi");
+      const utteranceText = isHindi
+        ? "नमस्ते! यह व्याख्या की चुनी हुई आवाज़ का पूर्वावलोकन है।" 
+        : "Hello! This is a preview of the selected voice on Vyakhya.";
+      
+      const synth = window.speechSynthesis;
+      if (!synth) {
+        showToast("Speech synthesis is not supported on this browser.", "error");
+        return;
+      }
+      synth.cancel();
+      const utterance = new SpeechSynthesisUtterance(utteranceText);
+      utterance.lang = language;
+      const voices = synth.getVoices();
+      const isMale = voicePreference === "male";
+      const matchingVoice = voices.find(v => {
+        const l = v.lang.toLowerCase();
+        const targetL = language.toLowerCase();
+        return l.includes(targetL) || l.includes(targetL.split("-")[0]);
+      });
+      if (matchingVoice) {
+        utterance.voice = matchingVoice;
+      }
+      utterance.pitch = isMale ? 0.85 : 1.25;
+      utterance.rate = 1.0;
+      synth.speak(utterance);
+    } catch (err) {
+      console.error("Preview voice failed:", err);
+    }
+  };
 
   const [dragActive, setDragActive] = useState(false);
   const [fileName, setFileName] = useState("");
@@ -143,7 +185,12 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
     if (activeTab === "document" && !documentText.trim()) return;
     if (activeTab === "url" && !url.trim()) return;
     if (activeTab === "image" && !imageBase64) {
-      alert("Please upload a textbook diagram or image page!");
+      showToast("Please upload a textbook diagram or image page!", "error");
+      return;
+    }
+
+    if (step === 1) {
+      setStep(2);
       return;
     }
 
@@ -175,60 +222,81 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
         </div>
       </div>
 
-      {/* Input Mode Navigation Tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 bg-zinc-100 dark:bg-zinc-900/50 p-1.5 rounded-xl mb-6 border border-zinc-200 dark:border-zinc-900 gap-1">
-        <button
-          type="button"
-          onClick={() => setActiveTab("topic")}
-          className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
-            activeTab === "topic"
-              ? "bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 border border-zinc-200 dark:border-zinc-700/50 shadow-sm"
-              : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
-          }`}
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Topic Input</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("document")}
-          className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
-            activeTab === "document"
-              ? "bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 border border-zinc-200 dark:border-zinc-700/50 shadow-sm"
-              : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
-          }`}
-        >
-          <FileText className="w-3.5 h-3.5" />
-          <span>Doc Upload</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("url")}
-          className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
-            activeTab === "url"
-              ? "bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 border border-zinc-200 dark:border-zinc-700/50 shadow-sm"
-              : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
-          }`}
-        >
-          <LinkIcon className="w-3.5 h-3.5" />
-          <span>URL Link</span>
-        </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab("image")}
-          className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
-            activeTab === "image"
-              ? "bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 border border-zinc-200 dark:border-zinc-700/50 shadow-sm"
-              : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
-          }`}
-        >
-          <ImageIcon className="w-3.5 h-3.5" />
-          <span>Textbook Page</span>
-        </button>
+      {/* STEP INDICATOR */}
+      <div className="flex items-center gap-2 mb-6">
+        <div className={`h-1.5 flex-1 rounded-full ${step === 1 ? 'bg-vyakhya-saffron' : 'bg-zinc-200 dark:bg-zinc-800'}`}></div>
+        <div className={`h-1.5 flex-1 rounded-full ${step === 2 ? 'bg-vyakhya-saffron' : 'bg-zinc-200 dark:bg-zinc-800'}`}></div>
       </div>
 
-      {/* Mode-Specific Inputs */}
-      <div className="space-y-4 mb-6">
+      {step === 1 && (
+        <>
+          {/* Input Mode Navigation Tabs */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 bg-zinc-100 dark:bg-zinc-900/50 p-1.5 rounded-xl mb-6 border border-zinc-200 dark:border-zinc-900 gap-1">
+            <button
+              type="button"
+              onClick={() => setActiveTab("topic")}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                activeTab === "topic"
+                  ? "bg-white dark:bg-zinc-800 text-vyakhya-saffron dark:text-vyakhya-saffron border border-zinc-200 dark:border-zinc-700/50 shadow-sm"
+                  : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Topic Input</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("document")}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                activeTab === "document"
+                  ? "bg-white dark:bg-zinc-800 text-vyakhya-saffron dark:text-vyakhya-saffron border border-zinc-200 dark:border-zinc-700/50 shadow-sm"
+                  : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Doc Upload</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("url")}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                activeTab === "url"
+                  ? "bg-white dark:bg-zinc-800 text-vyakhya-saffron dark:text-vyakhya-saffron border border-zinc-200 dark:border-zinc-700/50 shadow-sm"
+                  : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+              }`}
+            >
+              <LinkIcon className="w-3.5 h-3.5" />
+              <span>URL Link</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("image")}
+              className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                activeTab === "image"
+                  ? "bg-white dark:bg-zinc-800 text-vyakhya-saffron dark:text-vyakhya-saffron border border-zinc-200 dark:border-zinc-700/50 shadow-sm"
+                  : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
+              }`}
+            >
+              <ImageIcon className="w-3.5 h-3.5" />
+              <span>Textbook Page</span>
+            </button>
+          </div>
+
+          {/* Mode-Specific Inputs */}
+          <div className="space-y-4 mb-6">
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none mb-2">
+              {["Inflation vs Deflation", "How does a CPU work", "The history of the Silk Road", "What are black holes"].map(trend => (
+                <button
+                  key={trend}
+                  type="button"
+                  onClick={() => { setActiveTab("topic"); setTopic(trend); }}
+                  className="whitespace-nowrap px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-xs font-semibold rounded-full text-zinc-600 dark:text-zinc-300 hover:bg-vyakhya-saffron hover:text-white transition cursor-pointer"
+                >
+                  <Sparkles className="w-3 h-3 inline-block mr-1 opacity-50" />
+                  {trend}
+                </button>
+              ))}
+            </div>
         {activeTab === "topic" && (
           <div className="flex flex-col gap-1.5">
             <label htmlFor="topic" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
@@ -362,14 +430,18 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
           </div>
         )}
       </div>
+      </>
+    )}
 
-      {/* Format Selection (Explainer Video vs. Podcast) */}
-      <div className="flex flex-col gap-2 mb-6">
-        <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1">
-          <Settings className="w-3.5 h-3.5" />
-          <span>Output Format Selection</span>
-        </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+    {step === 2 && (
+      <>
+          {/* Format Selection (Explainer Video vs. Podcast) */}
+          <div className="flex flex-col gap-2 mb-6">
+            <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1">
+              <Settings className="w-3.5 h-3.5" />
+              <span>Output Format Selection</span>
+            </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <button
             type="button"
             onClick={() => setFormat("video")}
@@ -457,6 +529,13 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
             </div>
           </button>
         </div>
+
+        {voiceEngine === "browser" && (
+          <div className="text-amber-600 dark:text-amber-400 text-xs mt-2 bg-amber-500/10 border border-amber-500/20 px-3 py-2 rounded-lg font-medium leading-normal flex items-start gap-1.5">
+            <HelpCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>Lower quality, depends on your device's installed voices. Real gender selection may not sound distinct on some operating systems.</span>
+          </div>
+        )}
       </div>
       
       {/* Voice Preference */}
@@ -464,20 +543,49 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
         <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
           <span>Voice Preference</span>
         </label>
-        <div className="flex gap-6">
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <input type="radio" name="voice" value="female" className="text-indigo-600 focus:ring-indigo-500" checked={voicePreference === 'female'} onChange={() => setVoicePreference('female')} />
-            <span className="text-sm text-zinc-800 dark:text-zinc-200 font-medium">Female</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer select-none">
-            <input type="radio" name="voice" value="male" className="text-indigo-600 focus:ring-indigo-500" checked={voicePreference === 'male'} onChange={() => setVoicePreference('male')} />
-            <span className="text-sm text-zinc-800 dark:text-zinc-200 font-medium">Male</span>
-          </label>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-zinc-50 dark:bg-zinc-900/40 p-3 rounded-xl border border-zinc-200/60 dark:border-zinc-800/60">
+          <div className="flex gap-6">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input type="radio" name="voice" value="female" className="text-indigo-600 focus:ring-indigo-500 cursor-pointer" checked={voicePreference === 'female'} onChange={() => setVoicePreference('female')} />
+              <span className="text-sm text-zinc-800 dark:text-zinc-200 font-medium">Female</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input type="radio" name="voice" value="male" className="text-indigo-600 focus:ring-indigo-500 cursor-pointer" checked={voicePreference === 'male'} onChange={() => setVoicePreference('male')} />
+              <span className="text-sm text-zinc-800 dark:text-zinc-200 font-medium">Male</span>
+            </label>
+          </div>
+          <button
+            type="button"
+            onClick={handlePreviewVoice}
+            className="flex items-center justify-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300 font-bold px-3 py-1.5 rounded-lg text-xs border border-zinc-200 dark:border-zinc-800 transition active:scale-95 cursor-pointer self-start sm:self-auto"
+          >
+            <Volume2 className="w-3.5 h-3.5 text-indigo-500" />
+            <span>🔊 Preview Voice</span>
+          </button>
         </div>
       </div>
 
-      {/* Grid Settings Layout: Style, Length */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+      {/* Grid Settings Layout: Style, Length, Language */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        {/* Language Selection */}
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="language" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
+            Language & Accent
+          </label>
+          <select
+            id="language"
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-zinc-800 dark:text-zinc-200 focus:outline-none transition cursor-pointer font-medium"
+          >
+            {LANGUAGES.map((lang) => (
+              <option key={lang.code} value={lang.code} className="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200">
+                {lang.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Explainer Style */}
         <div className="flex flex-col gap-1.5">
           <label htmlFor="style" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
@@ -515,17 +623,36 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
             ))}
           </select>
         </div>
-      </div>
+          </div>
+        </>
+      )}
 
-      {/* Submit Button */}
-      <button
-        type="submit"
-        disabled={isLoading}
-        className="w-full flex items-center justify-center gap-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed select-none transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer text-sm sm:text-base"
-      >
-        <Sparkles className="w-5 h-5 fill-white animate-pulse" />
-        <span>{isLoading ? "Generating Script & Media..." : `Generate Vyakhya ${format === "video" ? "Video" : "Podcast"}`}</span>
-      </button>
+      {/* Navigation Buttons */}
+      <div className="flex items-center gap-3">
+        {step === 2 && (
+          <button
+            type="button"
+            onClick={() => setStep(1)}
+            className="flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-800 dark:text-zinc-200 font-bold py-3.5 px-6 rounded-xl transition cursor-pointer"
+          >
+            Back
+          </button>
+        )}
+        <button
+          type="submit"
+          disabled={isLoading}
+          className="flex-1 flex items-center justify-center gap-2.5 bg-vyakhya-indigo hover:bg-indigo-600 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed select-none transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer text-sm sm:text-base"
+        >
+          {step === 1 ? (
+            <span>Next Step</span>
+          ) : (
+            <>
+              <Sparkles className="w-5 h-5 fill-white animate-pulse" />
+              <span>{isLoading ? "Generating Script & Media..." : `Generate Vyakhya ${format === "video" ? "Video" : "Podcast"}`}</span>
+            </>
+          )}
+        </button>
+      </div>
     </form>
   );
 }

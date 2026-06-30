@@ -1,12 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Explainer } from "../types";
 import { db } from "../lib/firebase";
 import { collection, query, where, getDocs, limit, orderBy } from "firebase/firestore";
-import { Search, Compass, Clock, ThumbsUp, Sparkles, AlertCircle, PlayCircle, Podcast, Eye, Bookmark } from "lucide-react";
+import { Search, Compass, Clock, ThumbsUp, Sparkles, AlertCircle, PlayCircle, Podcast, Eye, Bookmark, TrendingUp } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-// Standard seeded tags representing NCERT/CBSE educational blocks
-const TOPIC_TAGS = ["Science", "History", "Finance", "Space", "AI", "Technology", "Health", "NCERT Class 10"];
 
 interface DiscoverFeedProps {
   onSelect?: (explainer: Explainer) => void;
@@ -133,6 +130,22 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
     });
   }
 
+  const dynamicTags = useMemo(() => {
+    const tagsMap: Record<string, number> = {};
+    explainers.forEach((ex) => {
+      if (ex.tags && Array.isArray(ex.tags)) {
+        ex.tags.forEach(t => {
+          tagsMap[t] = (tagsMap[t] || 0) + 1;
+        });
+      }
+    });
+    // Sort by count descending, keep top 10
+    return Object.entries(tagsMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([tag, count]) => ({ tag, count }));
+  }, [explainers]);
+
   return (
     <div className="w-full space-y-6">
       {/* Search and Filters panel */}
@@ -199,17 +212,18 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
         >
           All Topics
         </button>
-        {TOPIC_TAGS.map((tag) => (
+        {dynamicTags.map(({ tag, count }) => (
           <button
             key={tag}
             onClick={() => setSelectedTag(tag)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition cursor-pointer ${
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition cursor-pointer flex items-center gap-1.5 ${
               selectedTag === tag
-                ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400"
-                : "bg-zinc-50 dark:bg-zinc-900/30 border-zinc-200 dark:border-zinc-900 text-zinc-550 dark:text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
+                ? "bg-vyakhya-indigo/10 border-vyakhya-indigo/30 text-vyakhya-indigo dark:bg-vyakhya-indigo/20 dark:border-vyakhya-indigo/50 dark:text-vyakhya-parchment"
+                : "bg-zinc-50 dark:bg-zinc-900/30 border-zinc-200 dark:border-zinc-900 text-zinc-500 dark:text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
             }`}
           >
-            {tag}
+            <span>{tag}</span>
+            <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-mono ${selectedTag === tag ? 'bg-vyakhya-indigo/20 text-vyakhya-indigo dark:text-vyakhya-parchment' : 'bg-zinc-200 dark:bg-zinc-800 text-zinc-500'}`}>{count}</span>
           </button>
         ))}
       </div>
@@ -299,7 +313,7 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
                 if (onSelect) onSelect(exp);
                 else navigate(`/watch/${exp.id}`);
               }}
-              className="group flex flex-col bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 hover:border-indigo-500/40 hover:-translate-y-1 rounded-2xl overflow-hidden cursor-pointer shadow-md dark:shadow-lg transition-all duration-300 select-none"
+              className="group flex flex-col bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 hover:border-indigo-500/40 hover:-translate-y-1 rounded-2xl overflow-hidden cursor-pointer shadow-md dark:shadow-glow transition-all duration-300 select-none"
             >
               {/* Media Card Preview */}
               <div className="relative aspect-video bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-150 dark:border-zinc-900 flex items-center justify-center">

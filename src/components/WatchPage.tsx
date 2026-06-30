@@ -5,11 +5,10 @@ import { db, auth } from "../lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import CanvasRenderer from "./CanvasRenderer";
 import AudioWaveform from "./AudioWaveform";
-import Navbar from "./Navbar";
 import InteractiveHub from "./InteractiveHub";
 import { SEED_EXPLAINERS } from "./DiscoverFeed";
 import { ArrowLeft, Sparkles, Eye, Bookmark, Share2, Clipboard, AlertCircle, Sliders, RotateCcw, Music, Download, Presentation } from "lucide-react";
-import { exportReviewedScenesToPPTX } from "../lib/pptxExport";
+import { exportReviewedScenesToPPTX, PPTX_THEMES } from "../lib/pptxExport";
 
 export default function WatchPage() {
   const { id } = useParams<{ id: string }>();
@@ -21,6 +20,7 @@ export default function WatchPage() {
   const [activeSceneIdx, setActiveSceneIdx] = useState(0);
   const [syncOffset, setSyncOffset] = useState<number>(0);
   const [autoAdjustActive, setAutoAdjustActive] = useState<boolean>(false);
+  const [selectedPPTXTheme, setSelectedPPTXTheme] = useState<string>("modern_minimal");
 
   const handleAutoAdjustSync = () => {
     if (!explainer) return;
@@ -216,8 +216,7 @@ export default function WatchPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white">
-        <Navbar />
+      <div className="w-full">
         <div className="max-w-4xl mx-auto px-4 py-20 flex flex-col items-center justify-center">
           <div className="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-zinc-500 mt-4 font-medium text-sm animate-pulse">Loading explainer details...</p>
@@ -228,8 +227,7 @@ export default function WatchPage() {
 
   if (!explainer) {
     return (
-      <div className="min-h-screen bg-zinc-950 text-white">
-        <Navbar />
+      <div className="w-full">
         <div className="max-w-md mx-auto px-4 py-20 flex flex-col items-center justify-center text-center">
           <AlertCircle className="w-12 h-12 text-rose-500 mb-2" />
           <h2 className="text-xl font-bold">Explainer Not Found</h2>
@@ -246,9 +244,7 @@ export default function WatchPage() {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white pb-16">
-      <Navbar />
-
+    <div className="w-full pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 select-none">
         {/* Back Button */}
         <button
@@ -460,14 +456,32 @@ export default function WatchPage() {
               </div>
 
               {explainer.format === "video" && explainer.scenes && (
-                <button
-                  onClick={() => exportReviewedScenesToPPTX(explainer.scenes || [], explainer.title)}
-                  className="w-full py-2.5 rounded-xl border border-indigo-500/20 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 hover:text-indigo-300 text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer mt-3"
-                  title="Export this video's slides to PowerPoint presentation"
-                >
-                  <Presentation className="w-4 h-4" />
-                  <span>Export PowerPoint Presentation</span>
-                </button>
+                <div className="mt-4 p-3.5 rounded-xl border border-zinc-800 bg-zinc-950/40">
+                  <div className="flex flex-col gap-1.5 mb-2.5">
+                    <label className="text-[10px] font-bold tracking-wider uppercase text-zinc-500">
+                      PPTX Master Theme
+                    </label>
+                    <select
+                      value={selectedPPTXTheme}
+                      onChange={(e) => setSelectedPPTXTheme(e.target.value)}
+                      className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-xs text-zinc-300 focus:outline-none focus:border-indigo-500"
+                    >
+                      {Object.entries(PPTX_THEMES).map(([key, theme]) => (
+                        <option key={key} value={key}>
+                          {theme.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button
+                    onClick={() => exportReviewedScenesToPPTX(explainer.scenes || [], explainer.title, selectedPPTXTheme)}
+                    className="w-full py-2 rounded-lg border border-indigo-500/20 bg-indigo-600/15 hover:bg-indigo-600/25 text-indigo-400 hover:text-indigo-300 text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer"
+                    title="Export this video's slides to PowerPoint presentation"
+                  >
+                    <Presentation className="w-4 h-4" />
+                    <span>Export PowerPoint Presentation</span>
+                  </button>
+                </div>
               )}
 
               <div className="flex items-center justify-around border-t border-zinc-900 pt-4 text-xs font-mono text-zinc-500 text-center">
