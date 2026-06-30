@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { LANGUAGES, STYLES, LENGTHS } from "../types";
+import { STYLES, LENGTHS } from "../types";
 import { Sparkles, FileText, Link as LinkIcon, HelpCircle, FileUp, Settings, Podcast, Video, Volume2, Zap, Image as ImageIcon } from "lucide-react";
 
 interface CreationFormProps {
@@ -30,12 +30,24 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
   const [mimeType, setMimeType] = useState<string>("");
   const [imagePreview, setImagePreview] = useState<string>("");
   
-  const [language, setLanguage] = useState("en-IN");
+  const language = "en-IN";
   const [style, setStyle] = useState("simple");
   const [length, setLength] = useState(initialLength);
   const [format, setFormat] = useState<"video" | "podcast">("video");
-  const [voiceEngine, setVoiceEngine] = useState<"gemini" | "browser">("browser");
-  const [voicePreference, setVoicePreference] = useState<"male" | "female">("female");
+  const [voiceEngine, setVoiceEngine] = useState<"gemini" | "browser">(() => {
+    return (localStorage.getItem("vyakhya_voice_engine") as "gemini" | "browser") || "browser";
+  });
+  const [voicePreference, setVoicePreference] = useState<"male" | "female">(() => {
+    return (localStorage.getItem("vyakhya_voice_preference") as "male" | "female") || "female";
+  });
+
+  React.useEffect(() => {
+    localStorage.setItem("vyakhya_voice_engine", voiceEngine);
+  }, [voiceEngine]);
+
+  React.useEffect(() => {
+    localStorage.setItem("vyakhya_voice_preference", voicePreference);
+  }, [voicePreference]);
 
   React.useEffect(() => {
     if (initialTopic) setTopic(initialTopic);
@@ -151,27 +163,27 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-zinc-950 border border-zinc-900 rounded-2xl p-6 sm:p-8 shadow-2xl w-full">
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-2xl p-6 sm:p-8 shadow-xl dark:shadow-2xl w-full transition-colors duration-300">
       {/* Title */}
       <div className="flex items-center gap-3 mb-6 select-none">
-        <div className="bg-indigo-600/15 border border-indigo-500/30 text-indigo-400 p-2 rounded-xl">
+        <div className="bg-indigo-600/15 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 p-2 rounded-xl">
           <Sparkles className="w-5 h-5 animate-pulse" />
         </div>
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-zinc-100">Creation Studio</h1>
-          <p className="text-xs text-zinc-500">Transform complex ideas into narrated formats instantly</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">Creation Studio</h1>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">Transform complex ideas into narrated formats instantly</p>
         </div>
       </div>
 
       {/* Input Mode Navigation Tabs */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 bg-zinc-900/50 p-1.5 rounded-xl mb-6 border border-zinc-900 gap-1">
+      <div className="grid grid-cols-2 sm:grid-cols-4 bg-zinc-100 dark:bg-zinc-900/50 p-1.5 rounded-xl mb-6 border border-zinc-200 dark:border-zinc-900 gap-1">
         <button
           type="button"
           onClick={() => setActiveTab("topic")}
-          className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition ${
+          className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
             activeTab === "topic"
-              ? "bg-zinc-800 text-indigo-400 border border-zinc-700/50"
-              : "text-zinc-400 hover:text-zinc-200"
+              ? "bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 border border-zinc-200 dark:border-zinc-700/50 shadow-sm"
+              : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
           }`}
         >
           <Sparkles className="w-3.5 h-3.5" />
@@ -180,10 +192,10 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
         <button
           type="button"
           onClick={() => setActiveTab("document")}
-          className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition ${
+          className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
             activeTab === "document"
-              ? "bg-zinc-800 text-indigo-400 border border-zinc-700/50"
-              : "text-zinc-400 hover:text-zinc-200"
+              ? "bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 border border-zinc-200 dark:border-zinc-700/50 shadow-sm"
+              : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
           }`}
         >
           <FileText className="w-3.5 h-3.5" />
@@ -192,10 +204,10 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
         <button
           type="button"
           onClick={() => setActiveTab("url")}
-          className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition ${
+          className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
             activeTab === "url"
-              ? "bg-zinc-800 text-indigo-400 border border-zinc-700/50"
-              : "text-zinc-400 hover:text-zinc-200"
+              ? "bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 border border-zinc-200 dark:border-zinc-700/50 shadow-sm"
+              : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
           }`}
         >
           <LinkIcon className="w-3.5 h-3.5" />
@@ -204,10 +216,10 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
         <button
           type="button"
           onClick={() => setActiveTab("image")}
-          className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition ${
+          className={`flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition cursor-pointer ${
             activeTab === "image"
-              ? "bg-zinc-800 text-indigo-400 border border-zinc-700/50"
-              : "text-zinc-400 hover:text-zinc-200"
+              ? "bg-white dark:bg-zinc-800 text-indigo-600 dark:text-indigo-400 border border-zinc-200 dark:border-zinc-700/50 shadow-sm"
+              : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
           }`}
         >
           <ImageIcon className="w-3.5 h-3.5" />
@@ -219,7 +231,7 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
       <div className="space-y-4 mb-6">
         {activeTab === "topic" && (
           <div className="flex flex-col gap-1.5">
-            <label htmlFor="topic" className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+            <label htmlFor="topic" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
               What do you want explained?
             </label>
             <textarea
@@ -227,7 +239,7 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
               value={topic}
               onChange={(e) => setTopic(e.target.value)}
               placeholder="e.g. How does compound interest multiply wealth, or How does photosynthesis convert light into glucose?"
-              className="w-full bg-zinc-900 border border-zinc-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none min-h-[100px] resize-y transition"
+              className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none min-h-[100px] resize-y transition"
               required
             />
           </div>
@@ -243,10 +255,10 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
               onDrop={handleDrop}
               className={`relative border-2 border-dashed rounded-xl p-6 text-center transition flex flex-col items-center justify-center ${
                 dragActive
-                  ? "border-indigo-500 bg-indigo-950/20"
+                  ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-950/20"
                   : fileName
-                  ? "border-emerald-500/50 bg-emerald-950/5"
-                  : "border-zinc-800 hover:border-zinc-700 bg-zinc-900/40"
+                  ? "border-emerald-500/50 bg-emerald-50 dark:bg-emerald-950/5"
+                  : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/40"
               }`}
             >
               <input
@@ -256,8 +268,8 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
                 accept=".txt,.md,.json,.csv,.docx,.pdf,.pptx"
                 className="hidden"
               />
-              <FileUp className={`w-8 h-8 mb-2 ${fileName ? "text-emerald-500" : "text-zinc-500 animate-pulse"}`} />
-              <label htmlFor="file-upload" className="cursor-pointer text-xs font-semibold text-indigo-400 hover:text-indigo-300">
+              <FileUp className={`w-8 h-8 mb-2 ${fileName ? "text-emerald-500" : "text-zinc-400 dark:text-zinc-500 animate-pulse"}`} />
+              <label htmlFor="file-upload" className="cursor-pointer text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-300">
                 {fileName ? `File: ${fileName}` : "Drag & drop a text file, or browse files"}
               </label>
               <p className="text-[10px] text-zinc-500 mt-1">Supports plain text .txt, .md, .json, .csv files up to 20MB</p>
@@ -265,7 +277,7 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
 
             {/* Manual paste backup */}
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="documentText" className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+              <label htmlFor="documentText" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
                 Or paste document text content manually
               </label>
               <textarea
@@ -273,7 +285,7 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
                 value={documentText}
                 onChange={(e) => setDocumentText(e.target.value)}
                 placeholder="Paste curriculum notes, chapter PDFs contents, study sheets, or meeting transcripts directly here..."
-                className="w-full bg-zinc-900 border border-zinc-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none min-h-[100px] resize-y transition"
+                className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none min-h-[100px] resize-y transition"
               />
             </div>
           </div>
@@ -282,7 +294,7 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
         {activeTab === "url" && (
           <div className="space-y-4">
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="url" className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+              <label htmlFor="url" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
                 Paste Article or Webpage Link
               </label>
               <input
@@ -291,12 +303,12 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="e.g. https://en.wikipedia.org/wiki/Quantum_entanglement"
-                className="w-full bg-zinc-900 border border-zinc-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none transition"
+                className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none transition"
                 required
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="url-topic" className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+              <label htmlFor="url-topic" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
                 Focus Guidance (Optional)
               </label>
               <input
@@ -305,7 +317,7 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder="What specific angles should we highlight from this webpage?"
-                className="w-full bg-zinc-900 border border-zinc-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none transition"
+                className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none transition"
               />
             </div>
           </div>
@@ -313,7 +325,7 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
 
         {activeTab === "image" && (
           <div className="space-y-4">
-            <div className="relative border-2 border-dashed rounded-xl p-6 text-center transition flex flex-col items-center justify-center border-zinc-800 hover:border-zinc-700 bg-zinc-900/40">
+            <div className="relative border-2 border-dashed rounded-xl p-6 text-center transition flex flex-col items-center justify-center border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 bg-zinc-50 dark:bg-zinc-900/40">
               <input
                 type="file"
                 id="image-upload"
@@ -323,19 +335,19 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
               />
               {imagePreview ? (
                 <div className="mb-3 flex flex-col items-center gap-2">
-                  <img src={imagePreview} alt="Textbook preview" className="max-h-32 rounded-lg border border-zinc-800" />
-                  <span className="text-xs text-emerald-400 font-semibold">{fileName}</span>
+                  <img src={imagePreview} alt="Textbook preview" className="max-h-32 rounded-lg border border-zinc-250 dark:border-zinc-800" />
+                  <span className="text-xs text-emerald-500 font-semibold">{fileName}</span>
                 </div>
               ) : (
-                <ImageIcon className="w-8 h-8 mb-2 text-zinc-500 animate-pulse" />
+                <ImageIcon className="w-8 h-8 mb-2 text-zinc-400 dark:text-zinc-500 animate-pulse" />
               )}
-              <label htmlFor="image-upload" className="cursor-pointer text-xs font-semibold text-indigo-400 hover:text-indigo-300">
+              <label htmlFor="image-upload" className="cursor-pointer text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-550 dark:hover:text-indigo-300">
                 {imagePreview ? "Change image" : "Upload textbook page or diagram"}
               </label>
               <p className="text-[10px] text-zinc-500 mt-1">Supports JPG, PNG, WebP pages, science diagrams, math equations, or sketches</p>
             </div>
             <div className="flex flex-col gap-1.5">
-              <label htmlFor="image-focus" className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+              <label htmlFor="image-focus" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
                 Focus Guidance or Custom Topic (Optional)
               </label>
               <input
@@ -344,7 +356,7 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
                 value={topic}
                 onChange={(e) => setTopic(e.target.value)}
                 placeholder="e.g. Focus on explaining the Krebs cycle diagram from class 10 biology"
-                className="w-full bg-zinc-900 border border-zinc-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none transition"
+                className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 focus:border-indigo-500 rounded-xl px-4 py-3 text-sm text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none transition"
               />
             </div>
           </div>
@@ -353,7 +365,7 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
 
       {/* Format Selection (Explainer Video vs. Podcast) */}
       <div className="flex flex-col gap-2 mb-6">
-        <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1">
+        <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1">
           <Settings className="w-3.5 h-3.5" />
           <span>Output Format Selection</span>
         </label>
@@ -361,36 +373,36 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
           <button
             type="button"
             onClick={() => setFormat("video")}
-            className={`flex items-center gap-3.5 p-4 rounded-xl border text-left transition select-none ${
+            className={`flex items-center gap-3.5 p-4 rounded-xl border text-left transition select-none cursor-pointer ${
               format === "video"
-                ? "bg-indigo-950/30 border-indigo-500/80 text-white"
-                : "bg-zinc-900/40 border-zinc-800 text-zinc-400 hover:border-zinc-800 hover:bg-zinc-900"
+                ? "bg-indigo-50/50 dark:bg-indigo-950/30 border-indigo-600 dark:border-indigo-500/80 text-zinc-900 dark:text-white"
+                : "bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900"
             }`}
           >
-            <div className={`p-2 rounded-lg ${format === "video" ? "bg-indigo-600 text-indigo-100" : "bg-zinc-800 text-zinc-500"}`}>
+            <div className={`p-2 rounded-lg ${format === "video" ? "bg-indigo-100 dark:bg-indigo-600 text-indigo-700 dark:text-indigo-100" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500"}`}>
               <Video className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-sm font-bold">Explainer Video</div>
-              <div className="text-xs text-zinc-500 leading-normal">Rich narrated graphics with 8 layout designs</div>
+              <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Explainer Video</div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400 leading-normal">Rich narrated graphics with 8 layout designs</div>
             </div>
           </button>
 
           <button
             type="button"
             onClick={() => setFormat("podcast")}
-            className={`flex items-center gap-3.5 p-4 rounded-xl border text-left transition select-none ${
+            className={`flex items-center gap-3.5 p-4 rounded-xl border text-left transition select-none cursor-pointer ${
               format === "podcast"
-                ? "bg-amber-950/20 border-amber-500/80 text-white"
-                : "bg-zinc-900/40 border-zinc-800 text-zinc-400 hover:border-zinc-800 hover:bg-zinc-900"
+                ? "bg-amber-50/50 dark:bg-amber-950/20 border-amber-600 dark:border-amber-500/80 text-zinc-900 dark:text-white"
+                : "bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900"
             }`}
           >
-            <div className={`p-2 rounded-lg ${format === "podcast" ? "bg-amber-600 text-amber-100" : "bg-zinc-800 text-zinc-500"}`}>
+            <div className={`p-2 rounded-lg ${format === "podcast" ? "bg-amber-100 dark:bg-amber-600 text-amber-700 dark:text-amber-100" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500"}`}>
               <Podcast className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-sm font-bold">Podcast Dialogue</div>
-              <div className="text-xs text-zinc-500 leading-normal">Dual-voice host vs. expert conversation</div>
+              <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Podcast Dialogue</div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400 leading-normal">Dual-voice host vs. expert conversation</div>
             </div>
           </button>
         </div>
@@ -398,7 +410,7 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
 
       {/* Voice Synthesis Engine Selector */}
       <div className="flex flex-col gap-2 mb-6">
-        <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+        <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
           <Volume2 className="w-3.5 h-3.5" />
           <span>Voice Synthesis Engine (Rate-Limit Protection)</span>
         </label>
@@ -406,42 +418,42 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
           <button
             type="button"
             onClick={() => setVoiceEngine("browser")}
-            className={`flex items-center gap-3.5 p-4 rounded-xl border text-left transition select-none ${
+            className={`flex items-center gap-3.5 p-4 rounded-xl border text-left transition select-none cursor-pointer ${
               voiceEngine === "browser"
-                ? "bg-indigo-950/30 border-indigo-500/80 text-white"
-                : "bg-zinc-900/40 border-zinc-800 text-zinc-400 hover:border-zinc-800 hover:bg-zinc-900"
+                ? "bg-indigo-50/50 dark:bg-indigo-950/30 border-indigo-600 dark:border-indigo-500/80 text-zinc-900 dark:text-white"
+                : "bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900"
             }`}
           >
-            <div className={`p-2 rounded-lg ${voiceEngine === "browser" ? "bg-indigo-600 text-indigo-100" : "bg-zinc-800 text-zinc-500"}`}>
+            <div className={`p-2 rounded-lg ${voiceEngine === "browser" ? "bg-indigo-100 dark:bg-indigo-600 text-indigo-700 dark:text-indigo-100" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500"}`}>
               <Zap className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-sm font-bold flex items-center gap-1.5">
+              <div className="text-sm font-bold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-100">
                 <span>Browser Speech Engine</span>
-                <span className="text-[9px] bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-1.5 py-0.5 rounded-full uppercase font-mono font-bold font-sans">Free & Unlimited</span>
+                <span className="text-[9px] bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded-full uppercase font-mono font-bold font-sans">Free & Unlimited</span>
               </div>
-              <div className="text-xs text-zinc-500 leading-normal">Instant voice, 100% rate-limit proof. Bypasses Gemini limits!</div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400 leading-normal">Instant voice, 100% rate-limit proof. Bypasses Gemini limits!</div>
             </div>
           </button>
 
           <button
             type="button"
             onClick={() => setVoiceEngine("gemini")}
-            className={`flex items-center gap-3.5 p-4 rounded-xl border text-left transition select-none ${
+            className={`flex items-center gap-3.5 p-4 rounded-xl border text-left transition select-none cursor-pointer ${
               voiceEngine === "gemini"
-                ? "bg-amber-950/20 border-amber-500/80 text-white"
-                : "bg-zinc-900/40 border-zinc-800 text-zinc-400 hover:border-zinc-800 hover:bg-zinc-900"
+                ? "bg-amber-50/50 dark:bg-amber-950/20 border-amber-600 dark:border-amber-500/80 text-zinc-900 dark:text-white"
+                : "bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:border-zinc-300 dark:hover:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-900"
             }`}
           >
-            <div className={`p-2 rounded-lg ${voiceEngine === "gemini" ? "bg-amber-600 text-amber-100" : "bg-zinc-800 text-zinc-500"}`}>
+            <div className={`p-2 rounded-lg ${voiceEngine === "gemini" ? "bg-amber-100 dark:bg-amber-600 text-amber-700 dark:text-amber-100" : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-500"}`}>
               <Volume2 className="w-5 h-5" />
             </div>
             <div>
-              <div className="text-sm font-bold flex items-center gap-1.5">
+              <div className="text-sm font-bold flex items-center gap-1.5 text-zinc-900 dark:text-zinc-100">
                 <span>Gemini AI Voice</span>
-                <span className="text-[9px] bg-amber-500/10 border border-amber-500/30 text-amber-400 px-1.5 py-0.5 rounded-full uppercase font-mono font-bold font-sans">Subject to Quotas</span>
+                <span className="text-[9px] bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded-full uppercase font-mono font-bold font-sans">Subject to Quotas</span>
               </div>
-              <div className="text-xs text-zinc-500 leading-normal">Premium hyper-realistic studio voice. Subject to 429 quota.</div>
+              <div className="text-xs text-zinc-500 dark:text-zinc-400 leading-normal">Premium hyper-realistic studio voice. Subject to 429 quota.</div>
             </div>
           </button>
         </div>
@@ -449,55 +461,36 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
       
       {/* Voice Preference */}
       <div className="flex flex-col gap-2 mb-6">
-        <label className="text-xs font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+        <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
           <span>Voice Preference</span>
         </label>
-        <div className="flex gap-4">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="radio" name="voice" value="female" checked={voicePreference === 'female'} onChange={() => setVoicePreference('female')} />
-            <span className="text-sm text-zinc-200">Female</span>
+        <div className="flex gap-6">
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input type="radio" name="voice" value="female" className="text-indigo-600 focus:ring-indigo-500" checked={voicePreference === 'female'} onChange={() => setVoicePreference('female')} />
+            <span className="text-sm text-zinc-800 dark:text-zinc-200 font-medium">Female</span>
           </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input type="radio" name="voice" value="male" checked={voicePreference === 'male'} onChange={() => setVoicePreference('male')} />
-            <span className="text-sm text-zinc-200">Male</span>
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input type="radio" name="voice" value="male" className="text-indigo-600 focus:ring-indigo-500" checked={voicePreference === 'male'} onChange={() => setVoicePreference('male')} />
+            <span className="text-sm text-zinc-800 dark:text-zinc-200 font-medium">Male</span>
           </label>
         </div>
       </div>
 
-      {/* Grid Settings Layout: Language, Style, Length */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        {/* Language */}
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="language" className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-            Language & Accent Voice
-          </label>
-          <select
-            id="language"
-            value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none transition"
-          >
-            {LANGUAGES.map((lang) => (
-              <option key={lang.code} value={lang.code}>
-                {lang.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
+      {/* Grid Settings Layout: Style, Length */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
         {/* Explainer Style */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="style" className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+          <label htmlFor="style" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
             Narration Tone / Style
           </label>
           <select
             id="style"
             value={style}
             onChange={(e) => setStyle(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none transition"
+            className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-zinc-800 dark:text-zinc-200 focus:outline-none transition cursor-pointer"
           >
             {STYLES.map((st) => (
-              <option key={st.id} value={st.id}>
+              <option key={st.id} value={st.id} className="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200">
                 {st.name}
               </option>
             ))}
@@ -506,17 +499,17 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
 
         {/* Length / Duration */}
         <div className="flex flex-col gap-1.5">
-          <label htmlFor="length" className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
+          <label htmlFor="length" className="text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
             Length Duration
           </label>
           <select
             id="length"
             value={length}
             onChange={(e) => setLength(e.target.value)}
-            className="w-full bg-zinc-900 border border-zinc-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-zinc-200 focus:outline-none transition"
+            className="w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-zinc-800 dark:text-zinc-200 focus:outline-none transition cursor-pointer"
           >
             {LENGTHS.map((len) => (
-              <option key={len.id} value={len.id}>
+              <option key={len.id} value={len.id} className="bg-white dark:bg-zinc-900 text-zinc-800 dark:text-zinc-200">
                 {len.name}
               </option>
             ))}
@@ -528,9 +521,9 @@ export default function CreationForm({ onSubmit, isLoading, initialTopic = "", i
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full flex items-center justify-center gap-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed select-none transform hover:-translate-y-0.5 active:translate-y-0"
+        className="w-full flex items-center justify-center gap-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 rounded-xl transition shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed select-none transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer text-sm sm:text-base"
       >
-        <Sparkles className="w-5 h-5 fill-white" />
+        <Sparkles className="w-5 h-5 fill-white animate-pulse" />
         <span>{isLoading ? "Generating Script & Media..." : `Generate Vyakhya ${format === "video" ? "Video" : "Podcast"}`}</span>
       </button>
     </form>

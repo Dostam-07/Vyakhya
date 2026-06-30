@@ -52,6 +52,8 @@ export interface Explainer {
   audioUrl?: string; // Stored audio URL (for podcast)
   soundtrackUrl?: string; // Generated base64 soundtrack from Lyria (F-02)
   duration: number;
+  voicePreference?: "male" | "female";
+  voiceEngine?: "browser" | "gemini";
   scenes?: Scene[]; // Explainer script scenes
   turns?: PodcastTurn[]; // Podcast dialogues
   isPublic: boolean;
@@ -80,12 +82,12 @@ export interface GenerationJob {
 export const LANGUAGES = [
   { code: "en-IN", name: "English (India)", voiceHost: "Kore", voiceGuest: "Puck" },
   { code: "hi-IN", name: "Hindi (हिन्दी)", voiceHost: "Fenrir", voiceGuest: "Charon" },
-  { code: "ta-IN", name: "Tamil (தமிழ்)", voiceHost: "Kore", voiceGuest: "Zephyr" },
+  { code: "ta-IN", name: "Tamil (தமிழ்)", voiceHost: "Kore", voiceGuest: "Puck" },
   { code: "te-IN", name: "Telugu (తెలుగు)", voiceHost: "Zephyr", voiceGuest: "Puck" },
-  { code: "bn-IN", name: "Bengali (বাংলা)", voiceHost: "Charon", voiceGuest: "Fenrir" },
+  { code: "bn-IN", name: "Bengali (বাংলা)", voiceHost: "Fenrir", voiceGuest: "Charon" },
   { code: "mr-IN", name: "Marathi (मराठी)", voiceHost: "Kore", voiceGuest: "Charon" },
-  { code: "ml-IN", name: "Malayalam (മലയാളം)", voiceHost: "Zephyr", voiceGuest: "Kore" },
-  { code: "gu-IN", name: "Gujarati (ગુજરાતી)", voiceHost: "Charon", voiceGuest: "Puck" },
+  { code: "ml-IN", name: "Malayalam (മലയാളം)", voiceHost: "Zephyr", voiceGuest: "Charon" },
+  { code: "gu-IN", name: "Gujarati (ગુજરાતી)", voiceHost: "Fenrir", voiceGuest: "Puck" },
 ];
 
 export const STYLES = [

@@ -19,17 +19,17 @@ export default function Navbar() {
 
   const activeClass = (path: string) => {
     return location.pathname === path
-      ? "text-indigo-400 bg-zinc-900 border-b-2 border-indigo-500 font-semibold"
-      : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-900/50";
+      ? "text-indigo-600 dark:text-indigo-400 bg-zinc-100 dark:bg-zinc-900 border-b-2 border-indigo-500 font-semibold"
+      : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-900/50";
   };
 
   return (
-    <nav className="sticky top-0 z-50 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-900">
+    <nav className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-900 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo and Name together link to home-screen */}
           <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-2 text-white hover:opacity-90 transition select-none">
+            <Link to="/" className="flex items-center gap-2 text-zinc-900 dark:text-white hover:opacity-90 transition select-none">
               <div className="bg-indigo-600 rounded-lg p-1.5 shadow-indigo-500/20 shadow-md">
                 <Sparkles className="w-6 h-6 text-indigo-100 fill-indigo-200" />
               </div>
@@ -37,7 +37,7 @@ export default function Navbar() {
                 Vyakhya<span className="text-indigo-500 font-normal font-mono">.ai</span>
               </span>
               {localName && (
-                <span className="text-xs font-mono font-bold text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20 ml-2 hidden sm:inline-block">
+                <span className="text-xs font-mono font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-full border border-indigo-500/20 ml-2 hidden sm:inline-block">
                   {localName}
                 </span>
               )}
@@ -76,15 +76,15 @@ export default function Navbar() {
           <div className="flex items-center gap-4">
             <button
                onClick={toggleTheme}
-               className="p-2 rounded-lg bg-zinc-900 text-zinc-400 hover:text-zinc-100 transition"
+               className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 border border-zinc-200 dark:border-zinc-800 transition cursor-pointer"
                title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
              >
-               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+               {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-indigo-500" />}
              </button>
             {localName ? (
               <div className="flex items-center gap-3">
-                <span className="hidden sm:inline text-xs text-zinc-400 font-medium select-none">
-                  Hi, <span className="text-zinc-200 font-bold">{localName}</span>
+                <span className="hidden sm:inline text-xs text-zinc-500 dark:text-zinc-400 font-medium select-none">
+                  Hi, <span className="text-zinc-800 dark:text-zinc-200 font-bold">{localName}</span>
                 </span>
                 <button
                   onClick={() => {
@@ -96,7 +96,7 @@ export default function Navbar() {
                       window.dispatchEvent(new Event("storage"));
                     }
                   }}
-                  className="flex items-center gap-1.5 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-medium text-xs px-3 py-1.5 rounded-lg transition-all"
+                  className="flex items-center gap-1.5 bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 font-medium text-xs px-3 py-1.5 rounded-lg transition-all cursor-pointer"
                   title="Change nickname"
                 >
                   <Edit2 className="w-3.5 h-3.5" />

@@ -136,7 +136,7 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
   return (
     <div className="w-full space-y-6">
       {/* Search and Filters panel */}
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-zinc-950 border border-zinc-900 rounded-2xl p-4 sm:px-6">
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-2xl p-4 sm:px-6 shadow-sm dark:shadow-md transition-colors duration-300">
         {/* Search */}
         <div className="relative w-full md:max-w-md">
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4.5 h-4.5 text-zinc-500" />
@@ -145,7 +145,7 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
             placeholder="Semantic keyword or topic search..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-900/60 border border-zinc-800 focus:border-indigo-500 rounded-xl pl-10 pr-4 py-2 text-sm text-zinc-200 placeholder-zinc-500 focus:outline-none transition"
+            className="w-full bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-200 dark:border-zinc-800 focus:border-indigo-500 rounded-xl pl-10 pr-4 py-2 text-sm text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-500 focus:outline-none transition"
           />
         </div>
 
@@ -153,10 +153,10 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
         <div className="flex items-center gap-2.5 w-full md:w-auto overflow-x-auto">
           <button
             onClick={() => setSortBy("recent")}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold select-none border transition ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold select-none border transition cursor-pointer ${
               sortBy === "recent"
-                ? "bg-indigo-600/10 border-indigo-500/30 text-indigo-400"
-                : "bg-zinc-900/40 border-zinc-900 text-zinc-400 hover:text-zinc-200"
+                ? "bg-indigo-50 dark:bg-indigo-600/10 border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400"
+                : "bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-900 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
             }`}
           >
             <Clock className="w-3.5 h-3.5" />
@@ -164,10 +164,10 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
           </button>
           <button
             onClick={() => setSortBy("trending")}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold select-none border transition ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold select-none border transition cursor-pointer ${
               sortBy === "trending"
-                ? "bg-indigo-600/10 border-indigo-500/30 text-indigo-400"
-                : "bg-zinc-900/40 border-zinc-900 text-zinc-400 hover:text-zinc-200"
+                ? "bg-indigo-50 dark:bg-indigo-600/10 border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400"
+                : "bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-900 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
             }`}
           >
             <Compass className="w-3.5 h-3.5" />
@@ -175,10 +175,10 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
           </button>
           <button
             onClick={() => setSortBy("saved")}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold select-none border transition ${
+            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-semibold select-none border transition cursor-pointer ${
               sortBy === "saved"
-                ? "bg-indigo-600/10 border-indigo-500/30 text-indigo-400"
-                : "bg-zinc-900/40 border-zinc-900 text-zinc-400 hover:text-zinc-200"
+                ? "bg-indigo-50 dark:bg-indigo-600/10 border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400"
+                : "bg-zinc-50 dark:bg-zinc-900/40 border-zinc-200 dark:border-zinc-900 text-zinc-500 dark:text-zinc-400 hover:text-zinc-800 dark:hover:text-zinc-200"
             }`}
           >
             <Bookmark className="w-3.5 h-3.5" />
@@ -191,10 +191,10 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
       <div className="flex flex-wrap items-center gap-2 select-none">
         <button
           onClick={() => setSelectedTag(null)}
-          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
+          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition cursor-pointer ${
             selectedTag === null
-              ? "bg-indigo-500/10 border-indigo-500/30 text-indigo-400"
-              : "bg-zinc-900/30 border-zinc-900 text-zinc-500 hover:text-zinc-300"
+              ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400"
+              : "bg-zinc-50 dark:bg-zinc-900/30 border-zinc-200 dark:border-zinc-900 text-zinc-550 dark:text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
           }`}
         >
           All Topics
@@ -203,10 +203,10 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
           <button
             key={tag}
             onClick={() => setSelectedTag(tag)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition ${
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition cursor-pointer ${
               selectedTag === tag
-                ? "bg-indigo-500/10 border-indigo-500/30 text-indigo-400"
-                : "bg-zinc-900/30 border-zinc-900 text-zinc-500 hover:text-zinc-300"
+                ? "bg-indigo-50 dark:bg-indigo-500/10 border-indigo-200 dark:border-indigo-500/30 text-indigo-600 dark:text-indigo-400"
+                : "bg-zinc-50 dark:bg-zinc-900/30 border-zinc-200 dark:border-zinc-900 text-zinc-550 dark:text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300"
             }`}
           >
             {tag}
@@ -216,17 +216,17 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
 
       {/* F-07 Grounded Real-world Trends shelf */}
       {trendingTopics.length > 0 && (
-        <div className="bg-zinc-950 border border-zinc-900 rounded-2xl p-5 sm:p-6 mb-2">
+        <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-2xl p-5 sm:p-6 mb-2 shadow-sm">
           <div className="flex items-center gap-2.5 mb-4 select-none">
-            <div className="bg-indigo-600/15 border border-indigo-500/30 text-indigo-400 p-1.5 rounded-lg">
+            <div className="bg-indigo-600/15 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 p-1.5 rounded-lg">
               <Sparkles className="w-4 h-4 animate-pulse" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-zinc-100 flex items-center gap-2">
+              <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
                 <span>Google Grounded Real-world Trends</span>
-                <span className="text-[9px] bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 px-2 py-0.5 rounded-full font-mono uppercase">Live via Search</span>
+                <span className="text-[9px] bg-indigo-500/10 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-full font-mono uppercase">Live via Search</span>
               </h4>
-              <p className="text-[10px] text-zinc-500">Popular regional and national curriculum concepts trending now. Click any to create instantly!</p>
+              <p className="text-[10px] text-zinc-500 dark:text-zinc-400">Popular regional and national curriculum concepts trending now. Click any to create instantly!</p>
             </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -237,18 +237,18 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
                   navigate("/", { state: { topic: item.topic, length: item.length || "short" } });
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }}
-                className="bg-zinc-900/30 hover:bg-zinc-900/80 border border-zinc-800 hover:border-indigo-500/30 p-4 rounded-xl cursor-pointer transition duration-200 group flex flex-col justify-between"
+                className="bg-zinc-50 dark:bg-zinc-900/30 hover:bg-zinc-100 dark:hover:bg-zinc-900/85 border border-zinc-200 dark:border-zinc-800 hover:border-indigo-500/30 p-4 rounded-xl cursor-pointer transition duration-200 group flex flex-col justify-between shadow-sm hover:shadow"
               >
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
-                    <span className="text-xs font-bold text-zinc-200 group-hover:text-indigo-400 transition line-clamp-1">{item.topic}</span>
-                    <span className="bg-indigo-500/10 border border-indigo-500/20 text-[9px] text-indigo-400 px-1.5 py-0.5 rounded-full font-mono uppercase font-bold">{item.length || "short"}</span>
+                    <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition line-clamp-1">{item.topic}</span>
+                    <span className="bg-indigo-500/10 border border-indigo-500/20 text-[9px] text-indigo-600 dark:text-indigo-400 px-1.5 py-0.5 rounded-full font-mono uppercase font-bold">{item.length || "short"}</span>
                   </div>
-                  <p className="text-[11px] text-zinc-500 line-clamp-2 leading-relaxed">{item.hook}</p>
+                  <p className="text-[11px] text-zinc-500 dark:text-zinc-400 line-clamp-2 leading-relaxed">{item.hook}</p>
                 </div>
                 <div className="flex flex-wrap gap-1.5 mt-3">
                   {(item.tags || []).map((tag: string) => (
-                    <span key={tag} className="bg-zinc-900 text-zinc-600 border border-zinc-800/60 text-[9px] px-1.5 py-0.5 rounded font-mono">#{tag}</span>
+                    <span key={tag} className="bg-zinc-100 dark:bg-zinc-900 text-zinc-500 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-800/60 text-[9px] px-1.5 py-0.5 rounded font-mono">#{tag}</span>
                   ))}
                 </div>
               </div>
@@ -261,20 +261,20 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[1, 2, 3].map((n) => (
-            <div key={n} className="bg-zinc-950 border border-zinc-900 rounded-2xl h-80 animate-pulse flex flex-col justify-end p-5">
-              <div className="w-20 bg-zinc-800 h-4 rounded mb-2" />
-              <div className="w-full bg-zinc-800 h-6 rounded mb-2" />
-              <div className="w-2/3 bg-zinc-800 h-5 rounded" />
+            <div key={n} className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-2xl h-80 animate-pulse flex flex-col justify-end p-5">
+              <div className="w-20 bg-zinc-200 dark:bg-zinc-800 h-4 rounded mb-2" />
+              <div className="w-full bg-zinc-200 dark:bg-zinc-800 h-6 rounded mb-2" />
+              <div className="w-2/3 bg-zinc-200 dark:bg-zinc-800 h-5 rounded" />
             </div>
           ))}
         </div>
       ) : explainers.length === 0 ? (
-        <div id="honest_empty_feed" className="flex flex-col items-center justify-center p-16 bg-zinc-950 border border-zinc-900 rounded-3xl text-center space-y-4 max-w-xl mx-auto shadow-2xl">
-          <div className="p-4 bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 rounded-full animate-bounce inline-block">
+        <div id="honest_empty_feed" className="flex flex-col items-center justify-center p-16 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-3xl text-center space-y-4 max-w-xl mx-auto shadow-xl dark:shadow-2xl transition-colors duration-300">
+          <div className="p-4 bg-indigo-500/10 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 rounded-full animate-bounce inline-block">
             <Compass className="w-10 h-10" />
           </div>
-          <h3 className="text-xl font-bold text-zinc-100">No public explainers yet</h3>
-          <p className="text-sm text-zinc-400 max-w-sm">
+          <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">No public explainers yet</h3>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-sm">
             Be the first to create one! Use Vyakhya v2.0 to translate complex ideas into cinematic videos or dual-speaker podcasts.
           </p>
           <button
@@ -285,10 +285,10 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
           </button>
         </div>
       ) : filteredExplainers.length === 0 ? (
-        <div id="search_empty_feed" className="flex flex-col items-center justify-center p-12 bg-zinc-950 border border-zinc-900 rounded-2xl text-center text-zinc-400">
-          <AlertCircle className="w-10 h-10 text-zinc-600 mb-2" />
+        <div id="search_empty_feed" className="flex flex-col items-center justify-center p-12 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 rounded-2xl text-center text-zinc-500 dark:text-zinc-400 shadow-sm">
+          <AlertCircle className="w-10 h-10 text-zinc-300 dark:text-zinc-600 mb-2" />
           <p className="font-semibold text-sm">No explainers match your search keywords</p>
-          <p className="text-xs text-zinc-500 mt-1">Try other tags or adjust search query</p>
+          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-1">Try other tags or adjust search query</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -299,10 +299,10 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
                 if (onSelect) onSelect(exp);
                 else navigate(`/watch/${exp.id}`);
               }}
-              className="group flex flex-col bg-zinc-950 border border-zinc-900 hover:border-indigo-500/40 hover:-translate-y-1 rounded-2xl overflow-hidden cursor-pointer shadow-lg transition-all duration-300 select-none"
+              className="group flex flex-col bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 hover:border-indigo-500/40 hover:-translate-y-1 rounded-2xl overflow-hidden cursor-pointer shadow-md dark:shadow-lg transition-all duration-300 select-none"
             >
               {/* Media Card Preview */}
-              <div className="relative aspect-video bg-zinc-900 border-b border-zinc-900 flex items-center justify-center">
+              <div className="relative aspect-video bg-zinc-100 dark:bg-zinc-900 border-b border-zinc-150 dark:border-zinc-900 flex items-center justify-center">
                 {/* Simulated first-frame wallpaper */}
                 <div
                   className="absolute inset-0 bg-cover bg-center opacity-60 filter saturate-[0.8]"
@@ -318,7 +318,7 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
                 {/* Cover Frame Glow Overlay */}
                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-transparent to-transparent opacity-90" />
 
-                <div className="absolute top-3 left-3 flex items-center gap-1.5">
+                <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
                   <span className="bg-zinc-900/90 backdrop-blur-sm border border-zinc-800 text-[10px] font-bold px-2.5 py-1 rounded-md text-zinc-300 font-mono">
                     {exp.language.split("-")[0].toUpperCase()}
                   </span>
@@ -327,7 +327,7 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
                   </span>
                 </div>
 
-                <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm text-[10px] font-semibold text-zinc-300 px-2 py-0.5 rounded font-mono">
+                <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm text-[10px] font-semibold text-zinc-300 px-2 py-0.5 rounded font-mono z-10">
                   {exp.duration}s
                 </div>
 
@@ -344,26 +344,26 @@ export default function DiscoverFeed({ onSelect }: DiscoverFeedProps) {
               {/* Title & Metadata */}
               <div className="p-5 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="text-base font-bold text-zinc-100 group-hover:text-indigo-400 transition line-clamp-1">
+                  <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition line-clamp-1">
                     {exp.title}
                   </h3>
-                  <p className="text-xs text-zinc-500 line-clamp-2 mt-1.5 leading-relaxed">
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 mt-1.5 leading-relaxed">
                     {exp.topic}
                   </p>
                 </div>
 
                 {/* Footer values */}
-                <div className="flex items-center justify-between border-t border-zinc-900/80 mt-4 pt-3.5 text-[11px] text-zinc-400">
+                <div className="flex items-center justify-between border-t border-zinc-100 dark:border-zinc-900/80 mt-4 pt-3.5 text-[11px] text-zinc-500 dark:text-zinc-400">
                   <div className="flex items-center gap-1.5">
                     <img
                       src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=40&h=40&q=80"
                       alt="Creator avatar"
                       className="w-5 h-5 rounded-full"
                     />
-                    <span className="font-medium text-zinc-500">{exp.creatorName || "Anonymous"}</span>
+                    <span className="font-medium text-zinc-500 dark:text-zinc-400">{exp.creatorName || "Anonymous"}</span>
                   </div>
 
-                  <div className="flex items-center gap-2.5 font-mono text-zinc-500">
+                  <div className="flex items-center gap-2.5 font-mono text-zinc-400 dark:text-zinc-500">
                     <span className="flex items-center gap-1">
                       <Eye className="w-3.5 h-3.5" />
                       {exp.views}

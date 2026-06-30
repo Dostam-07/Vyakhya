@@ -9,6 +9,8 @@ interface CanvasRendererProps {
   isEditable?: boolean;
   syncOffset?: number;
   onUpdateScenes?: (scenes: Scene[]) => void;
+  voicePreference?: "male" | "female";
+  language?: string;
 }
 
 export default function CanvasRenderer({
@@ -18,6 +20,8 @@ export default function CanvasRenderer({
   isEditable = false,
   syncOffset = 0,
   onUpdateScenes,
+  voicePreference,
+  language,
 }: CanvasRendererProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
@@ -210,11 +214,58 @@ export default function CanvasRenderer({
 
     const utterance = new SpeechSynthesisUtterance(text);
     currentUtteranceRef.current = utterance;
-    const isHost = sceneIndex % 2 === 0;
     
-    // Vary pitch/rate to make the voice distinct for host vs guest scenes
-    utterance.pitch = isHost ? 1.0 : 1.25;
+    const resolvedLanguage = language || localStorage.getItem("vyakhya_language") || "en-IN";
+    const resolvedPreference = voicePreference || localStorage.getItem("vyakhya_voice_preference") || "female";
+    
+    // Fallback language parsing
+    utterance.lang = resolvedLanguage;
+
+    // Pitch styling for gender representation
+    utterance.pitch = resolvedPreference === "male" ? 0.85 : 1.2;
     utterance.rate = 1.02;
+
+    // Try to locate a matching native browser voice!
+    if (window.speechSynthesis.getVoices) {
+      const voices = window.speechSynthesis.getVoices();
+      // Filter by language
+      let langVoices = voices.filter((v) => 
+        v.lang.toLowerCase() === resolvedLanguage.toLowerCase() || 
+        v.lang.toLowerCase().startsWith(resolvedLanguage.split("-")[0].toLowerCase())
+      );
+      
+      if (langVoices.length === 0) {
+        langVoices = voices;
+      }
+      
+      // Filter by gender preference
+      let matchedVoice = null;
+      if (resolvedPreference === "female") {
+        matchedVoice = langVoices.find(v => 
+          v.name.toLowerCase().includes("female") || 
+          v.name.toLowerCase().includes("zira") || 
+          v.name.toLowerCase().includes("susan") || 
+          v.name.toLowerCase().includes("hazel") || 
+          v.name.toLowerCase().includes("google us english") || 
+          v.name.toLowerCase().includes("microsoft") && !v.name.toLowerCase().includes("david")
+        );
+      } else {
+        matchedVoice = langVoices.find(v => 
+          v.name.toLowerCase().includes("male") || 
+          v.name.toLowerCase().includes("david") || 
+          v.name.toLowerCase().includes("george") || 
+          v.name.toLowerCase().includes("ravi")
+        );
+      }
+      
+      if (!matchedVoice && langVoices.length > 0) {
+        matchedVoice = langVoices[0];
+      }
+      
+      if (matchedVoice) {
+        utterance.voice = matchedVoice;
+      }
+    }
 
     utterance.onstart = () => {
       if (currentUtteranceRef.current === utterance) {
@@ -644,296 +695,350 @@ export default function CanvasRenderer({
 
   // Rendering Layout Helpers
   const renderTitleCard = (ctx: CanvasRenderingContext2D, w: number, h: number, p: number, s: Scene) => {
-    // Title slides up slightly
-    const yOffset = (1 - p) * 30;
+    // Title slides up and fades in smoothly
+    const yOffset = (1 - p) * 35;
+    const accent = s.accent_color || "#818cf8";
 
-    // Draw Accent Graphic Icon Or Circle
-    ctx.strokeStyle = s.accent_color;
-    ctx.lineWidth = 4;
+    // Frosted Glass Effect Center Panel
+    ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.arc(w / 2, h / 2 - 120, 45 + Math.sin(p * Math.PI) * 8, 0, Math.PI * 2);
+    ctx.roundRect(w / 2 - 320, h / 2 - 200, 640, 400, 24);
+    ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = s.accent_color;
+    // Fine decorative concentric rings
+    ctx.strokeStyle = `${accent}25`;
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.arc(w / 2, h / 2 - 120, 20 + Math.cos(p * Math.PI) * 4, 0, Math.PI * 2);
+    ctx.arc(w / 2, h / 2 - 110, 85 + Math.sin(p * Math.PI) * 10, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = `${accent}40`;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(w / 2, h / 2 - 110, 60 + Math.cos(p * Math.PI) * 6, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Central pulsing core
+    ctx.fillStyle = accent;
+    ctx.shadowColor = accent;
+    ctx.shadowBlur = 15;
+    ctx.beginPath();
+    ctx.arc(w / 2, h / 2 - 110, 18 + Math.sin(p * Math.PI * 2) * 3, 0, Math.PI * 2);
     ctx.fill();
+    ctx.shadowBlur = 0; // reset shadow
 
-    // Main Headline
+    // Tag Badge with JetBrains Mono font
+    ctx.fillStyle = `${accent}15`;
+    ctx.strokeStyle = `${accent}35`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(w / 2 - 120, h / 2 - 25, 240, 28, 14);
+    ctx.fill();
+    ctx.stroke();
+
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 44px 'Inter', sans-serif";
-    ctx.fillText(s.headline, w / 2, h / 2 + 20 - yOffset);
+    ctx.font = "bold 11px 'JetBrains Mono', monospace";
+    ctx.letterSpacing = "2px";
+    ctx.fillText("VYAKHYA CREATOR STUDIO", w / 2, h / 2 - 11);
+    ctx.letterSpacing = "0px"; // reset
 
-    // Subtitle
-    ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-    ctx.font = "20px 'Inter', sans-serif";
-    ctx.fillText("VYAKHYA EXPLAINER SERIES", w / 2, h / 2 - 30 - yOffset);
+    // Main Headline using modern 'Outfit' font
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "600 42px 'Outfit', sans-serif";
+    ctx.fillText(s.headline, w / 2, h / 2 + 50 - yOffset);
+
+    // Decorative line below headline
+    ctx.strokeStyle = `rgba(255, 255, 255, 0.15)`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(w / 2 - 160, h / 2 + 105);
+    ctx.lineTo(w / 2 + 160, h / 2 + 105);
+    ctx.stroke();
+
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(w / 2 - 40 * p, h / 2 + 105);
+    ctx.lineTo(w / 2 + 40 * p, h / 2 + 105);
+    ctx.stroke();
 
     // Visual Instruction / Theme footer
-    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-    ctx.font = "italic 15px 'Inter', sans-serif";
-    ctx.fillText(`Scene Objective: ${s.visual_instruction}`, w / 2, h / 2 + 100);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+    ctx.font = "500 13px 'JetBrains Mono', monospace";
+    ctx.fillText(`DIRECTIVE: ${s.visual_instruction.toUpperCase()}`, w / 2, h / 2 + 145);
   };
 
   const renderConceptSplit = (ctx: CanvasRenderingContext2D, w: number, h: number, p: number, s: Scene) => {
-    // Draw centered headline
+    const accent = s.accent_color || "#818cf8";
+    
+    // Header Headline using Outfit
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 32px 'Inter', sans-serif";
-    ctx.fillText(s.headline, w / 2, 80);
+    ctx.font = "600 30px 'Outfit', sans-serif";
+    ctx.fillText(s.headline, w / 2, 75);
 
-    // Split Line down the middle
+    const cardW = w / 2 - 80;
+    const cardH = h - 230;
+    const cardY = 130;
+
+    // LEFT BENTO-CARD
+    const leftX = w / 4 - 20;
+    const leftOffset = (1 - Math.min(p * 1.5, 1)) * 30;
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.015)";
+    ctx.strokeStyle = `${accent}25`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(45, cardY, cardW, cardH, 20);
+    ctx.fill();
+    ctx.stroke();
+
+    // Left Title tag
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "600 24px 'Outfit', sans-serif";
+    ctx.fillText(s.left_label || "Concept A", leftX, cardY + 45 + leftOffset);
+
+    // Left comparison illustration (Dynamic Node structure)
+    const leftCenterY = cardY + cardH / 2 + 10;
+    ctx.strokeStyle = `${accent}40`;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(leftX - 60, leftCenterY - 30);
+    ctx.lineTo(leftX, leftCenterY + 40);
+    ctx.lineTo(leftX + 60, leftCenterY - 30);
+    ctx.closePath();
+    ctx.stroke();
+
+    const nodeCoords = [
+      { x: leftX - 60, y: leftCenterY - 30 },
+      { x: leftX, y: leftCenterY + 40 },
+      { x: leftX + 60, y: leftCenterY - 30 },
+      { x: leftX, y: leftCenterY - 15 }
+    ];
+
+    nodeCoords.forEach((node, i) => {
+      ctx.fillStyle = i === 3 ? "#ffffff" : accent;
+      ctx.shadowColor = accent;
+      ctx.shadowBlur = i === 3 ? 0 : 8;
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, 8 + Math.sin(p * Math.PI + i) * 2, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+    ctx.font = "500 14px 'JetBrains Mono', monospace";
+    ctx.fillText("INTEGRATED SYSTEM NODES", leftX, cardY + cardH - 40 + leftOffset);
+
+
+    // RIGHT BENTO-CARD
+    const rightX = (w / 4) * 3 + 20;
+    const rightOffset = (1 - Math.min(p * 1.5, 1)) * 30;
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.015)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.roundRect(w / 2 + 35, cardY, cardW, cardH, 20);
+    ctx.fill();
+    ctx.stroke();
+
+    // Right Title tag
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "600 24px 'Outfit', sans-serif";
+    ctx.fillText(s.right_label || "Concept B", rightX, cardY + 45 + rightOffset);
+
+    // Right comparison illustration (Dynamic orbital shell target structure)
+    const rightCenterY = cardY + cardH / 2 + 10;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(rightX, rightCenterY, 65, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    ctx.beginPath();
+    ctx.arc(rightX, rightCenterY, 40, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(rightX + Math.cos(p * Math.PI * 2) * 40, rightCenterY + Math.sin(p * Math.PI * 2) * 40, 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+    ctx.beginPath();
+    ctx.arc(rightX, rightCenterY, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+    ctx.font = "500 14px 'JetBrains Mono', monospace";
+    ctx.fillText("ORBITAL SHELL MODEL", rightX, cardY + cardH - 40 + rightOffset);
+
+
+    // CENTRAL VS BADGE
+    ctx.fillStyle = "#121214";
     ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
-    ctx.lineWidth = 2;
-    ctx.setLineDash([8, 8]);
+    ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(w / 2, 160);
-    ctx.lineTo(w / 2, h - 100);
-    ctx.stroke();
-    ctx.setLineDash([]); // Reset
-
-    // Left Column
-    const leftX = w / 4;
-    const leftOffset = (1 - Math.min(p * 1.5, 1)) * 50;
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 26px 'Inter', sans-serif";
-    ctx.fillText(s.left_label || "Concept A", leftX, 220 + leftOffset);
-
-    // Icon Circle for left
-    ctx.strokeStyle = s.accent_color;
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(leftX, h / 2, 50, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.fillStyle = `${s.accent_color}22`;
-    ctx.beginPath();
-    ctx.arc(leftX, h / 2, 50, 0, Math.PI * 2);
+    ctx.arc(w / 2, cardY + cardH / 2, 28, 0, Math.PI * 2);
     ctx.fill();
-
-    // Right Column
-    const rightX = (w / 4) * 3;
-    const rightOffset = (1 - Math.min(p * 1.5, 1)) * 50;
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 26px 'Inter', sans-serif";
-    ctx.fillText(s.right_label || "Concept B", rightX, 220 + rightOffset);
-
-    // Icon Circle for right
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 3;
-    ctx.beginPath();
-    ctx.arc(rightX, h / 2, 50, 0, Math.PI * 2);
     ctx.stroke();
-    ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
-    ctx.beginPath();
-    ctx.arc(rightX, h / 2, 50, 0, Math.PI * 2);
-    ctx.fill();
 
-    // Text descriptions
-    ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-    ctx.font = "18px 'Inter', sans-serif";
-    ctx.fillText("Dynamic Left Node", leftX, h / 2 + 100 + leftOffset);
-    ctx.fillText("Opposing Right Node", rightX, h / 2 + 100 + rightOffset);
+    ctx.fillStyle = accent;
+    ctx.font = "bold 15px 'JetBrains Mono', monospace";
+    ctx.fillText("VS", w / 2, cardY + cardH / 2 + 1);
   };
 
   const renderBulletReveal = (ctx: CanvasRenderingContext2D, w: number, h: number, p: number, s: Scene) => {
+    const accent = s.accent_color || "#818cf8";
+    
+    // Title
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 32px 'Inter', sans-serif";
-    ctx.fillText(s.headline, w / 2, 80);
+    ctx.font = "600 30px 'Outfit', sans-serif";
+    ctx.fillText(s.headline, w / 2, 75);
 
     const bullets = s.bullets || ["Core point one", "Core point two", "Core point three"];
-    const startY = 180;
-    const spacingY = 90;
+    const startY = 160;
+    const spacingY = 85;
 
     bullets.forEach((bullet, index) => {
       // Calculate staggered entrance
-      const triggerP = index * 0.25; // 0, 0.25, 0.5
-      const bulletP = Math.max(0, Math.min((p - triggerP) / 0.25, 1));
+      const triggerP = index * 0.22;
+      const bulletP = Math.max(0, Math.min((p - triggerP) / 0.22, 1));
 
       if (bulletP > 0) {
-        const xOffset = (1 - bulletP) * 40;
+        const xOffset = (1 - bulletP) * 35;
         const alpha = bulletP;
 
-        // Draw bullet point background box
-        ctx.fillStyle = `rgba(255, 255, 255, ${0.03 * alpha})`;
-        ctx.fillRect(100 - xOffset, startY + index * spacingY - 35, w - 200, 70);
+        const cardX = 120;
+        const cardY = startY + index * spacingY;
+        const cardW = w - 240;
+        const cardH = 68;
 
-        // Checkmark circle
-        ctx.strokeStyle = `rgba(124, 106, 247, ${alpha})`;
-        ctx.fillStyle = s.accent_color;
-        ctx.lineWidth = 3;
+        // Card Container with frosted styling
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.02 * alpha})`;
+        ctx.strokeStyle = `rgba(255, 255, 255, ${0.08 * alpha})`;
+        ctx.lineWidth = 1;
         ctx.beginPath();
-        ctx.arc(150 - xOffset, startY + index * spacingY, 15, 0, Math.PI * 2);
+        ctx.roundRect(cardX - xOffset, cardY - cardH / 2, cardW, cardH, 14);
+        ctx.fill();
         ctx.stroke();
-        if (bulletP > 0.5) {
-          ctx.beginPath();
-          ctx.arc(150 - xOffset, startY + index * spacingY, 8, 0, Math.PI * 2);
-          ctx.fill();
-        }
 
-        // Text
-        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-        ctx.font = "22px 'Inter', sans-serif";
+        // Color Accent strip on the left edge
+        ctx.fillStyle = `rgba(${parseInt(accent.slice(1, 3), 16) || 129}, ${parseInt(accent.slice(3, 5), 16) || 140}, ${parseInt(accent.slice(5, 7), 16) || 248}, ${alpha})`;
+        ctx.beginPath();
+        ctx.roundRect(cardX - xOffset, cardY - cardH / 2, 6, cardH, [14, 0, 0, 14]);
+        ctx.fill();
+
+        // Index indicator with JetBrains Mono
+        ctx.fillStyle = `rgba(255, 255, 255, ${0.35 * alpha})`;
+        ctx.font = "500 13px 'JetBrains Mono', monospace";
         ctx.textAlign = "left";
-        ctx.fillText(bullet, 190 - xOffset, startY + index * spacingY);
-        ctx.textAlign = "center"; // Reset alignment
+        ctx.fillText(`0${index + 1}`, cardX + 30 - xOffset, cardY + 1);
+
+        // Separator line
+        ctx.strokeStyle = `rgba(255, 255, 255, ${0.1 * alpha})`;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(cardX + 65 - xOffset, cardY - 14);
+        ctx.lineTo(cardX + 65 - xOffset, cardY + 14);
+        ctx.stroke();
+
+        // Bullet text with Outfit font
+        ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+        ctx.font = "500 18px 'Outfit', sans-serif";
+        ctx.fillText(bullet, cardX + 85 - xOffset, cardY + 1);
+        ctx.textAlign = "center"; // reset
       }
     });
   };
 
   const renderAnalogyCard = (ctx: CanvasRenderingContext2D, w: number, h: number, p: number, s: Scene) => {
-    // Headline
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 32px 'Inter', sans-serif";
-    ctx.fillText(s.headline, w / 2, 80);
+    const accent = s.accent_color || "#818cf8";
 
-    // Draw Metaphor Gear/Idea Icon in Center
-    const centerY = h / 2 - 30;
-    const size = 65 + Math.sin(p * Math.PI) * 10;
-    
-    ctx.strokeStyle = s.accent_color;
-    ctx.lineWidth = 5;
+    // Headline using Outfit
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "600 30px 'Outfit', sans-serif";
+    ctx.fillText(s.headline, w / 2, 75);
+
+    // Split Canvas Left and Right
+    const leftX = w / 4 + 20;
+    const rightX = (w / 4) * 3 - 20;
+
+    // --- LEFT GRAPHIC (The Metaphor Lightbulb/Core) ---
+    const centerY = h / 2 + 15;
+    const coreRad = 55 + Math.sin(p * Math.PI) * 6;
+
+    // Outer glow ring
+    ctx.strokeStyle = `${accent}15`;
+    ctx.lineWidth = 6;
     ctx.beginPath();
-    ctx.arc(w / 2, centerY, size, 0, Math.PI * 2);
+    ctx.arc(leftX, centerY, coreRad + 25, 0, Math.PI * 2);
     ctx.stroke();
 
-    // Draw inner cross hairs/spokes
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
-    ctx.lineWidth = 3;
-    for (let i = 0; i < 4; i++) {
-      const angle = (i * Math.PI) / 2 + p * 0.5;
+    // Secondary colored ring
+    ctx.strokeStyle = `${accent}35`;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(leftX, centerY, coreRad, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Geometric lines connecting core to infinity
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < 8; i++) {
+      const angle = (i * Math.PI) / 4 + p * 0.25;
       ctx.beginPath();
-      ctx.moveTo(w / 2 - Math.cos(angle) * size, centerY - Math.sin(angle) * size);
-      ctx.lineTo(w / 2 + Math.cos(angle) * size, centerY + Math.sin(angle) * size);
+      ctx.moveTo(leftX + Math.cos(angle) * coreRad, centerY + Math.sin(angle) * coreRad);
+      ctx.lineTo(leftX + Math.cos(angle) * (coreRad + 50), centerY + Math.sin(angle) * (coreRad + 50));
       ctx.stroke();
     }
 
-    // Analogy explanation text in box
-    ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
-    ctx.fillRect(150, h - 200, w - 300, 100);
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-    ctx.strokeRect(150, h - 200, w - 300, 100);
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "italic 20px 'Inter', sans-serif";
-    ctx.fillText(s.analogy_text || "A great way to think of this is like a lock and key.", w / 2, h - 150);
-  };
-
-  const renderDataStat = (ctx: CanvasRenderingContext2D, w: number, h: number, p: number, s: Scene) => {
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 32px 'Inter', sans-serif";
-    ctx.fillText(s.headline, w / 2, 80);
-
-    // Extract numerical value
-    const targetVal = s.stat_value || "100%";
-    const numOnly = parseInt(targetVal) || 0;
-    const suffix = targetVal.replace(/[0-9]/g, "");
-
-    // Count Up animation
-    const currentNum = Math.floor(numOnly * p);
-    const textToShow = `${currentNum}${suffix}`;
-
-    // Circular Loader Frame
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
-    ctx.lineWidth = 14;
+    // Inner core sphere
+    ctx.fillStyle = accent;
+    ctx.shadowColor = accent;
+    ctx.shadowBlur = 15;
     ctx.beginPath();
-    ctx.arc(w / 2, h / 2 - 20, 110, 0, Math.PI * 2);
-    ctx.stroke();
+    ctx.arc(leftX, centerY, 22, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0; // reset
 
-    // Actual Fill Loader
-    ctx.strokeStyle = s.accent_color;
-    ctx.lineWidth = 14;
-    ctx.lineCap = "round";
-    ctx.beginPath();
-    ctx.arc(w / 2, h / 2 - 20, 110, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * p);
-    ctx.stroke();
-    ctx.lineCap = "butt";
+    // --- RIGHT ANALOGY CONTENT (Frosted Quote Card) ---
+    const boxW = w / 2 - 40;
+    const boxH = h - 230;
+    const boxY = 130;
 
-    // giant stat text
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 78px 'Inter', sans-serif";
-    ctx.fillText(textToShow, w / 2, h / 2 - 20);
-
-    // Label
-    ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-    ctx.font = "bold 22px 'Inter', sans-serif";
-    ctx.fillText(s.stat_label || "Stat Indicator", w / 2, h / 2 + 130);
-  };
-
-  const renderTimeline = (ctx: CanvasRenderingContext2D, w: number, h: number, p: number, s: Scene) => {
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 32px 'Inter', sans-serif";
-    ctx.fillText(s.headline, w / 2, 80);
-
-    const steps = s.steps || ["Stage 1", "Stage 2", "Stage 3", "Stage 4"];
-    const startX = 150;
-    const lineW = w - 300;
-    const centerY = h / 2;
-
-    // Draw full backline
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-    ctx.lineWidth = 6;
-    ctx.beginPath();
-    ctx.moveTo(startX, centerY);
-    ctx.lineTo(startX + lineW, centerY);
-    ctx.stroke();
-
-    // Draw active fill line
-    ctx.strokeStyle = s.accent_color;
-    ctx.lineWidth = 6;
-    ctx.beginPath();
-    ctx.moveTo(startX, centerY);
-    ctx.lineTo(startX + lineW * p, centerY);
-    ctx.stroke();
-
-    steps.forEach((step, index) => {
-      const stepX = startX + (lineW / (steps.length - 1)) * index;
-      const stepTriggerP = index / steps.length;
-      const isActive = p >= stepTriggerP;
-
-      // Draw Node Dot
-      ctx.fillStyle = isActive ? s.accent_color : "#2a2a35";
-      ctx.strokeStyle = isActive ? "#ffffff" : "rgba(255, 255, 255, 0.2)";
-      ctx.lineWidth = 3;
-      ctx.beginPath();
-      ctx.arc(stepX, centerY, isActive ? 14 : 10, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // Step text
-      ctx.fillStyle = isActive ? "#ffffff" : "rgba(255, 255, 255, 0.4)";
-      ctx.font = isActive ? "bold 18px 'Inter', sans-serif" : "16px 'Inter', sans-serif";
-      ctx.fillText(step, stepX, centerY + 50);
-
-      // Label number
-      ctx.fillStyle = isActive ? "#000000" : "rgba(255,255,255,0.6)";
-      ctx.font = "bold 11px 'Inter', sans-serif";
-      ctx.fillText((index + 1).toString(), stepX, centerY);
-    });
-  };
-
-  const renderQuoteCard = (ctx: CanvasRenderingContext2D, w: number, h: number, p: number, s: Scene) => {
-    // Backdrop Card Box
     ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
-    ctx.fillRect(100, 100, w - 200, h - 200);
-    ctx.strokeStyle = `${s.accent_color}33`;
-    ctx.strokeRect(100, 100, w - 200, h - 200);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(w / 2 - 10, boxY, boxW, boxH, 20);
+    ctx.fill();
+    ctx.stroke();
 
-    // Large decorative Quote Marks
-    ctx.fillStyle = `${s.accent_color}22`;
-    ctx.font = "italic bold 180px Georgia, serif";
-    ctx.fillText("“", 170, 220);
+    // Decorative quote marks with Playfair Display
+    ctx.fillStyle = `${accent}18`;
+    ctx.font = "italic bold 100px 'Playfair Display', serif";
+    ctx.fillText("“", w / 2 + 35, boxY + 75);
 
-    // Quote content
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "italic 26px 'Inter', sans-serif";
-    
-    // Simple word wrapping for quote
-    const text = s.quote_text || "Quote text is missing.";
-    const words = text.split(" ");
+    // Headline/Tag
+    ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+    ctx.font = "600 11px 'JetBrains Mono', monospace";
+    ctx.letterSpacing = "1.5px";
+    ctx.fillText("CONCEPTUAL METAPHOR", w / 2 + boxW / 2 - 10, boxY + 35);
+    ctx.letterSpacing = "0px";
+
+    // Metaphor description text wrap
+    const metaphorText = s.analogy_text || "A great way to think of this is like a lock and key.";
+    const words = metaphorText.split(" ");
     let line = "";
     let lines = [];
-    const maxWidth = w - 300;
+    const maxWidth = boxW - 80;
 
-    ctx.font = "italic 24px 'Inter', sans-serif";
+    ctx.font = "italic 21px 'Playfair Display', serif";
     for (let n = 0; n < words.length; n++) {
       let testLine = line + words[n] + " ";
       let metrics = ctx.measureText(testLine);
@@ -946,51 +1051,264 @@ export default function CanvasRenderer({
     }
     lines.push(line);
 
-    // Draw each wrapped line
+    // Draw wrapped lines inside the citation card
+    ctx.fillStyle = "#ffffff";
+    const startLinesY = boxY + (boxH - (lines.length * 32)) / 2 + 10;
+    lines.forEach((l, idx) => {
+      ctx.fillText(l.trim(), w / 2 + boxW / 2 - 10, startLinesY + idx * 34);
+    });
+  };
+
+  const renderDataStat = (ctx: CanvasRenderingContext2D, w: number, h: number, p: number, s: Scene) => {
+    const accent = s.accent_color || "#818cf8";
+
+    // Title
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "600 30px 'Outfit', sans-serif";
+    ctx.fillText(s.headline, w / 2, 75);
+
+    // Extract numerical value
+    const targetVal = s.stat_value || "100%";
+    const numOnly = parseInt(targetVal) || 0;
+    const suffix = targetVal.replace(/[0-9]/g, "");
+
+    // Count Up animation
+    const currentNum = Math.floor(numOnly * p);
+    const textToShow = `${currentNum}${suffix}`;
+
+    // Modern Double Ring Gauge
+    const centerX = w / 2;
+    const centerY = h / 2 - 10;
+    const radius = 100;
+
+    // Track arc
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.04)";
+    ctx.lineWidth = 12;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, -Math.PI, Math.PI);
+    ctx.stroke();
+
+    // Secondary fine decorative dotted loop
+    ctx.strokeStyle = `${accent}22`;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 6]);
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius + 15, -Math.PI, Math.PI);
+    ctx.stroke();
+    ctx.setLineDash([]); // reset
+
+    // Active fill gauge
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 12;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * p));
+    ctx.stroke();
+    ctx.lineCap = "butt"; // reset
+
+    // Giant stat count-up text
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 82px 'Outfit', sans-serif";
+    ctx.fillText(textToShow, centerX, centerY);
+
+    // Label Card below
+    const labelBoxY = h / 2 + 115;
+    ctx.fillStyle = "rgba(255, 255, 255, 0.02)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(w / 2 - 200, labelBoxY - 25, 400, 50, 10);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = accent;
+    ctx.font = "600 11px 'JetBrains Mono', monospace";
+    ctx.letterSpacing = "1.5px";
+    ctx.fillText(s.stat_label?.toUpperCase() || "CRITICAL PERFORMANCE INDICATOR", w / 2, labelBoxY + 3);
+    ctx.letterSpacing = "0px";
+  };
+
+  const renderTimeline = (ctx: CanvasRenderingContext2D, w: number, h: number, p: number, s: Scene) => {
+    const accent = s.accent_color || "#818cf8";
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "600 30px 'Outfit', sans-serif";
+    ctx.fillText(s.headline, w / 2, 75);
+
+    const steps = s.steps || ["Stage 1", "Stage 2", "Stage 3", "Stage 4"];
+    const startX = 160;
+    const lineW = w - 320;
+    const centerY = h / 2 + 15;
+
+    // Background track line
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+    ctx.lineWidth = 5;
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(startX, centerY);
+    ctx.lineTo(startX + lineW, centerY);
+    ctx.stroke();
+
+    // Active glowing fill line
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(startX, centerY);
+    ctx.lineTo(startX + lineW * p, centerY);
+    ctx.stroke();
+    ctx.lineCap = "butt"; // reset
+
+    steps.forEach((step, index) => {
+      const stepX = startX + (lineW / (steps.length - 1)) * index;
+      const stepTriggerP = index / (steps.length - 1);
+      const isActive = p >= stepTriggerP;
+
+      const scale = isActive ? 1.0 : 0.88;
+      const opacity = isActive ? 1.0 : 0.4;
+
+      // Draw custom node card
+      ctx.fillStyle = "rgba(20, 20, 22, 0.95)";
+      ctx.strokeStyle = isActive ? accent : "rgba(255, 255, 255, 0.1)";
+      ctx.lineWidth = isActive ? 2 : 1;
+      ctx.beginPath();
+      ctx.roundRect(stepX - 60, centerY - 80, 120, 48, 10);
+      ctx.fill();
+      ctx.stroke();
+
+      // Badge indicator inside card
+      ctx.fillStyle = isActive ? `${accent}20` : "rgba(255, 255, 255, 0.05)";
+      ctx.beginPath();
+      ctx.roundRect(stepX - 50, centerY - 72, 24, 18, 5);
+      ctx.fill();
+
+      ctx.fillStyle = isActive ? accent : "rgba(255, 255, 255, 0.4)";
+      ctx.font = "bold 10px 'JetBrains Mono', monospace";
+      ctx.fillText(`0${index + 1}`, stepX - 38, centerY - 63);
+
+      // Label beneath
+      ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+      ctx.font = isActive ? "bold 15px 'Outfit', sans-serif" : "14px 'Outfit', sans-serif";
+      ctx.fillText(step, stepX, centerY + 45);
+
+      // Small glowing core dot on the track line
+      ctx.fillStyle = isActive ? "#ffffff" : "#1e1e24";
+      ctx.strokeStyle = isActive ? accent : "rgba(255, 255, 255, 0.2)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(stepX, centerY, isActive ? 9 : 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    });
+  };
+
+  const renderQuoteCard = (ctx: CanvasRenderingContext2D, w: number, h: number, p: number, s: Scene) => {
+    const accent = s.accent_color || "#818cf8";
+
+    // Elite glass block frame
+    ctx.fillStyle = "rgba(255, 255, 255, 0.015)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(100, 100, w - 200, h - 200, 24);
+    ctx.fill();
+    ctx.stroke();
+
+    // Giant artistic quote marks with Playfair Display
+    ctx.fillStyle = `${accent}22`;
+    ctx.font = "italic bold 180px 'Playfair Display', serif";
+    ctx.fillText("“", 180, 240);
+
+    // Simple word wrapping for quote
+    const text = s.quote_text || "Quote text is missing.";
+    const words = text.split(" ");
+    let line = "";
+    let lines = [];
+    const maxWidth = w - 320;
+
+    ctx.font = "italic 25px 'Playfair Display', serif";
+    for (let n = 0; n < words.length; n++) {
+      let testLine = line + words[n] + " ";
+      let metrics = ctx.measureText(testLine);
+      if (metrics.width > maxWidth && n > 0) {
+        lines.push(line);
+        line = words[n] + " ";
+      } else {
+        line = testLine;
+      }
+    }
+    lines.push(line);
+
+    // Draw quote text
     ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(p * 2, 1)})`;
     const startY = h / 2 - (lines.length - 1) * 20;
     lines.forEach((l, idx) => {
-      ctx.fillText(l.trim(), w / 2, startY + idx * 40);
+      ctx.fillText(l.trim(), w / 2, startY + idx * 38);
     });
 
-    // Quote Attribution
-    if (p > 0.5) {
-      const alpha = (p - 0.5) * 2;
-      ctx.fillStyle = `rgba(255, 255, 255, ${0.6 * alpha})`;
-      ctx.font = "bold 18px 'Inter', sans-serif";
-      ctx.fillText(`— ${s.quote_attribution || "Unknown Source"}`, w / 2, h / 2 + lines.length * 30 + 30);
+    // Author attribution with minimal glowing line
+    if (p > 0.4) {
+      const alpha = (p - 0.4) * 1.6;
+      const attributionY = h / 2 + lines.length * 25 + 35;
+
+      ctx.strokeStyle = `${accent}${Math.floor(alpha * 255).toString(16).padStart(2, '0')}`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(w / 2 - 30, attributionY - 14);
+      ctx.lineTo(w / 2 + 30, attributionY - 14);
+      ctx.stroke();
+
+      ctx.fillStyle = `rgba(255, 255, 255, ${0.75 * alpha})`;
+      ctx.font = "600 15px 'JetBrains Mono', monospace";
+      ctx.letterSpacing = "1px";
+      ctx.fillText(`— ${s.quote_attribution?.toUpperCase() || "SOURCE UNKNOWN"}`, w / 2, attributionY + 12);
+      ctx.letterSpacing = "0px"; // reset
     }
   };
 
   const renderSummaryCard = (ctx: CanvasRenderingContext2D, w: number, h: number, p: number, s: Scene) => {
-    // Background glow grows
-    const glowRad = p * 150;
-    const gradient = ctx.createRadialGradient(w / 2, h / 2 - 50, 0, w / 2, h / 2 - 50, glowRad);
-    gradient.addColorStop(0, `${s.accent_color}22`);
+    const accent = s.accent_color || "#818cf8";
+
+    // Ambient center core glow
+    const glowRad = p * 160;
+    const gradient = ctx.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, glowRad);
+    gradient.addColorStop(0, `${accent}1c`);
     gradient.addColorStop(1, "transparent");
     ctx.fillStyle = gradient;
     ctx.beginPath();
-    ctx.arc(w / 2, h / 2 - 50, glowRad, 0, Math.PI * 2);
+    ctx.arc(w / 2, h / 2, glowRad, 0, Math.PI * 2);
     ctx.fill();
 
-    // Headline
-    const textY = (1 - p) * 15;
+    // Headline with Outfit
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 38px 'Inter', sans-serif";
-    ctx.fillText(s.headline, w / 2, h / 2 - 30 - textY);
+    ctx.font = "600 42px 'Outfit', sans-serif";
+    ctx.fillText(s.headline, w / 2, h / 2 - 50);
 
-    // Subtitle Recap
-    ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-    ctx.font = "22px 'Inter', sans-serif";
-    ctx.fillText("Explainer Complete", w / 2, h / 2 + 40);
+    // Subtitle complete indicator
+    ctx.fillStyle = accent;
+    ctx.font = "bold 13px 'JetBrains Mono', monospace";
+    ctx.letterSpacing = "3px";
+    ctx.fillText("EXPLAINER SUMMARY", w / 2, h / 2 + 10);
+    ctx.letterSpacing = "0px";
 
-    // Visual elements
-    ctx.strokeStyle = s.accent_color;
-    ctx.lineWidth = 3;
+    // Elegant separator lines extending horizontally
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.12)";
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(w / 2 - 100 * p, h / 2 + 80);
-    ctx.lineTo(w / 2 + 100 * p, h / 2 + 80);
+    ctx.moveTo(w / 2 - 180, h / 2 + 50);
+    ctx.lineTo(w / 2 + 180, h / 2 + 50);
     ctx.stroke();
+
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(w / 2 - 70 * p, h / 2 + 50);
+    ctx.lineTo(w / 2 + 70 * p, h / 2 + 50);
+    ctx.stroke();
+
+    // Little footer brand stamp
+    ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+    ctx.font = "500 13px 'Outfit', sans-serif";
+    ctx.fillText("Vyakhya - Professional Storyteller Engine", w / 2, h / 2 + 90);
   };
 
   // Recording Engine to merge Audio + Canvas stream into WebM file

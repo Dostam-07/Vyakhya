@@ -565,7 +565,7 @@ ${contextText}`;
 Create a structured, scene-by-scene script for an animated explainer video.
 Follow these constraints strictly:
 1. The explanation must strictly match the user's requested topic and answer any specific questions, focus points, or guidelines they asked for.
-2. Narration must be simple, conversational, and highly engaging in the requested language (${langLabel}).
+2. Narration must be simple, conversational, and highly engaging in English. Do NOT use the word "Namaste" anywhere in the greeting or narration. Always start greetings with "Hello" or another friendly English greeting.
 3. ${sceneGuidance}
 4. Ensure rich visual imagery, descriptions of animations, and graphical elements are included for each scene.
 5. For EACH scene, provide a detailed, descriptive 'image_description' field that explains the visual content, composition, and style of the image for that scene.
@@ -697,11 +697,12 @@ Length Category: ${lenLabel} (short: ~10 turns, medium: ~20 turns, deep: ~30 tur
 Create a highly engaging, educational conversational dialogue between Joe (the host) and Jane (the guest expert).
 Follow these constraints strictly:
 1. The podcast conversation must strictly match the user's requested topic and answer any direct questions or guidelines they specified. Avoid unrelated banter or generalities.
-2. Joe is curious, relatable, asking smart questions.
-3. Jane is highly knowledgeable, breaks down complex topics with brilliant analogies, and speaks clearly and friendly.
-4. Ensure that Jane's expert explanations and Joe's questions directly address the core technical or conceptual details of the user's prompt in high fidelity.
-5. Keep turns punchy and natural (approx 15-40 words per turn).
-6. Output strictly in JSON format matching the schema provided. No conversational wrapper or markdown fences.`,
+2. The podcast dialogue must be entirely in English. Do NOT use the word "Namaste" anywhere in the conversation or greetings. Any opening greeting must start with "Hello" or another standard English greeting.
+3. Joe is curious, relatable, asking smart questions.
+4. Jane is highly knowledgeable, breaks down complex topics with brilliant analogies, and speaks clearly and friendly.
+5. Ensure that Jane's expert explanations and Joe's questions directly address the core technical or conceptual details of the user's prompt in high fidelity.
+6. Keep turns punchy and natural (approx 15-40 words per turn).
+7. Output strictly in JSON format matching the schema provided. No conversational wrapper or markdown fences.`,
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -1595,18 +1596,18 @@ wss.on("connection", async (clientWs, req) => {
         speechConfig: {
           voiceConfig: {
             prebuiltVoiceConfig: {
-              voiceName: language.startsWith("hi") ? "Fenrir" : "Kore",
+              voiceName: "Kore",
             }
           }
         },
-        systemInstruction: `You are Vya, an expert multilingual Indian tutor who just narrated a highly educational lesson to this student.
-You speak naturally, warmly, and encouragingly in ${language.startsWith("hi") ? "Hindi" : "English"}.
+        systemInstruction: `You are Vya, an expert tutor who just narrated a highly educational lesson to this student.
+You speak naturally, warmly, and encouragingly in English only. Do NOT use the word "Namaste" anywhere in the conversation or greetings. Always start greetings with "Hello" or another standard English greeting.
 The lesson script you narrated is:
 ---
 ${contextScript.slice(0, 5000)}
 ---
 Help the student by explaining concepts further, answering questions about this lesson, or providing simple analogies.
-Always answer the student's spoken questions about this content. Keep your spoken answers under 3 concise sentences. Be extremely warm and helpful.`
+Always answer the student's spoken questions about this content in English. Keep your spoken answers under 3 concise sentences. Be extremely warm and helpful.`
       },
       callbacks: {
         onmessage: (message: any) => {

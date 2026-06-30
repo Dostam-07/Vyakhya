@@ -8,7 +8,8 @@ import AudioWaveform from "./AudioWaveform";
 import Navbar from "./Navbar";
 import InteractiveHub from "./InteractiveHub";
 import { SEED_EXPLAINERS } from "./DiscoverFeed";
-import { ArrowLeft, Sparkles, Eye, Bookmark, Share2, Clipboard, AlertCircle, Sliders, RotateCcw, Music, Download } from "lucide-react";
+import { ArrowLeft, Sparkles, Eye, Bookmark, Share2, Clipboard, AlertCircle, Sliders, RotateCcw, Music, Download, Presentation } from "lucide-react";
+import { exportReviewedScenesToPPTX } from "../lib/pptxExport";
 
 export default function WatchPage() {
   const { id } = useParams<{ id: string }>();
@@ -267,6 +268,8 @@ export default function WatchPage() {
                 activeSceneIndex={activeSceneIdx}
                 onSceneChange={setActiveSceneIdx}
                 syncOffset={syncOffset}
+                voicePreference={explainer.voicePreference}
+                language={explainer.language}
                 isEditable={!explainer.creatorId || explainer.creatorId === auth.currentUser?.uid || auth.currentUser?.email === explainer.creatorEmail}
                 onUpdateScenes={(updatedScenes) => {
                   handleUpdateExplainer({
@@ -281,6 +284,8 @@ export default function WatchPage() {
                 turns={explainer.turns || []} 
                 topic={explainer.topic} 
                 syncOffset={syncOffset}
+                voicePreference={explainer.voicePreference}
+                language={explainer.language}
               />
             )}
 
@@ -453,6 +458,17 @@ export default function WatchPage() {
                   <span>Download</span>
                 </button>
               </div>
+
+              {explainer.format === "video" && explainer.scenes && (
+                <button
+                  onClick={() => exportReviewedScenesToPPTX(explainer.scenes || [], explainer.title)}
+                  className="w-full py-2.5 rounded-xl border border-indigo-500/20 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 hover:text-indigo-300 text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer mt-3"
+                  title="Export this video's slides to PowerPoint presentation"
+                >
+                  <Presentation className="w-4 h-4" />
+                  <span>Export PowerPoint Presentation</span>
+                </button>
+              )}
 
               <div className="flex items-center justify-around border-t border-zinc-900 pt-4 text-xs font-mono text-zinc-500 text-center">
                 <div>

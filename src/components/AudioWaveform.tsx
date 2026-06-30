@@ -7,9 +7,11 @@ interface AudioWaveformProps {
   turns: PodcastTurn[];
   topic: string;
   syncOffset?: number;
+  voicePreference?: "male" | "female";
+  language?: string;
 }
 
-export default function AudioWaveform({ title, turns, topic, syncOffset = 0 }: AudioWaveformProps) {
+export default function AudioWaveform({ title, turns, topic, syncOffset = 0, voicePreference, language }: AudioWaveformProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [activeTurnIndex, setActiveTurnIndex] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -65,11 +67,67 @@ export default function AudioWaveform({ title, turns, topic, syncOffset = 0 }: A
 
     const utterance = new SpeechSynthesisUtterance(turn.text);
     podcastUtteranceRef.current = utterance;
-    const isJoe = turn.speaker === "host";
     
-    // Set pitch/rate based on speaker to distinguish Joe and Jane!
-    utterance.pitch = isJoe ? 0.95 : 1.25;
+    const resolvedLanguage = language || localStorage.getItem("vyakhya_language") || "en-IN";
+    const resolvedPreference = voicePreference || localStorage.getItem("vyakhya_voice_preference") || "female";
+    
+    utterance.lang = resolvedLanguage;
+
+    const isHost = turn.speaker === "host";
+    
+    // Set pitch/rate based on speaker to distinguish host and guest dialogue!
+    if (resolvedPreference === "male") {
+      // Host is male, guest is female
+      utterance.pitch = isHost ? 0.85 : 1.2;
+    } else {
+      // Host is female, guest is male
+      utterance.pitch = isHost ? 1.2 : 0.85;
+    }
     utterance.rate = 1.05;
+
+    // Try to locate a matching native browser voice!
+    if (window.speechSynthesis.getVoices) {
+      const voices = window.speechSynthesis.getVoices();
+      let langVoices = voices.filter((v) => 
+        v.lang.toLowerCase() === resolvedLanguage.toLowerCase() || 
+        v.lang.toLowerCase().startsWith(resolvedLanguage.split("-")[0].toLowerCase())
+      );
+      
+      if (langVoices.length === 0) {
+        langVoices = voices;
+      }
+      
+      let matchedVoice = null;
+      // Get distinct voices for host and guest
+      const prefVoiceGender = isHost ? resolvedPreference : (resolvedPreference === "male" ? "female" : "male");
+      
+      if (prefVoiceGender === "female") {
+        matchedVoice = langVoices.find(v => 
+          v.name.toLowerCase().includes("female") || 
+          v.name.toLowerCase().includes("zira") || 
+          v.name.toLowerCase().includes("susan") || 
+          v.name.toLowerCase().includes("hazel") || 
+          v.name.toLowerCase().includes("google us english") || 
+          v.name.toLowerCase().includes("microsoft") && !v.name.toLowerCase().includes("david")
+        );
+      } else {
+        matchedVoice = langVoices.find(v => 
+          v.name.toLowerCase().includes("male") || 
+          v.name.toLowerCase().includes("david") || 
+          v.name.toLowerCase().includes("george") || 
+          v.name.toLowerCase().includes("ravi")
+        );
+      }
+      
+      if (!matchedVoice && langVoices.length > 0) {
+        // Fallback: use first for host, second for guest if available
+        matchedVoice = isHost ? langVoices[0] : (langVoices[1] || langVoices[0]);
+      }
+      
+      if (matchedVoice) {
+        utterance.voice = matchedVoice;
+      }
+    }
 
     utterance.onstart = () => {
       if (podcastUtteranceRef.current === utterance) {

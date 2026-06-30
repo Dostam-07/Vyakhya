@@ -29,6 +29,7 @@
     "multer": "^2.2.0",
     "officeparser": "^7.2.1",
     "pdf-parse": "^2.4.5",
+    "pptxgenjs": "^4.0.1",
     "react": "^19.0.1",
     "react-dom": "^19.0.1",
     "react-markdown": "^10.1.0",

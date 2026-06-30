@@ -7,13 +7,13 @@ import DiscoverFeed from "./components/DiscoverFeed";
 import WatchPage from "./components/WatchPage";
 import LibraryPage from "./components/LibraryPage";
 import NameModal from "./components/NameModal";
-import InteractiveHub from "./components/InteractiveHub";
 import AnalyticsDashboard from "./components/AnalyticsDashboard";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { auth, db } from "./lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
-import { Sparkles, Brain, Mic, Film, CheckCircle2, AlertCircle, ArrowRight, Compass, Pencil, Plus, Trash2, ArrowUp, ArrowDown, Check, Save, RotateCcw, Clock, Eye } from "lucide-react";
+import { Sparkles, Brain, Mic, Film, CheckCircle2, AlertCircle, ArrowRight, Compass, Pencil, Plus, Trash2, ArrowUp, ArrowDown, Check, Save, RotateCcw, Clock, Eye, Presentation, Zap } from "lucide-react";
 import { Scene, Explainer, PodcastTurn, LANGUAGES } from "./types";
+import { exportReviewedScenesToPPTX } from "./lib/pptxExport";
 
 // Create QueryClient instance for TanStack Query integration
 const queryClient = new QueryClient();
@@ -36,20 +36,20 @@ function StudioPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-16">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-900 dark:text-zinc-100 transition-colors duration-300 pb-16">
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
         {/* Hero Tagline */}
         <div className="text-center max-w-2xl mx-auto py-6 select-none">
-          <span className="bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider font-mono">
+          <span className="bg-indigo-500/10 border border-indigo-500/30 text-indigo-600 dark:text-indigo-400 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider font-mono">
             Vibe-Coded Multilingual Explanation Engine
           </span>
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-100 tracking-tight mt-4 leading-snug">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight mt-4 leading-snug">
             Confused by a complex topic? <br />
-            Meet Vyakhya, simple, animated explainers in <span className="text-indigo-500">60 seconds</span>.
+            Meet Vyakhya, simple, animated explainers in <span className="text-indigo-600 dark:text-indigo-500">60 seconds</span>.
           </h1>
-          <p className="text-sm sm:text-base text-zinc-500 mt-3 leading-relaxed">
+          <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400 mt-3 leading-relaxed">
             Vyakhya parses dense topics, generates scripts via Gemini Flash, narrates in regional Indian accents, and draws visual animations automatically.
           </p>
         </div>
@@ -67,41 +67,41 @@ function StudioPage() {
 
           <div className="lg:col-span-5 h-full space-y-6">
             {/* Visual guide card */}
-            <div className="bg-gradient-to-br from-indigo-950/20 to-zinc-950 border border-indigo-900/30 rounded-2xl p-6 sm:p-8 flex flex-col justify-between h-full shadow-lg select-none">
+            <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/80 rounded-2xl p-6 sm:p-8 flex flex-col justify-between h-full shadow-lg select-none">
               <div className="space-y-4">
-                <span className="text-[11px] font-bold uppercase font-mono tracking-widest text-indigo-400">Vyakhya Pipeline</span>
-                <h3 className="text-xl font-bold text-zinc-100 leading-tight">Dynamic AI-Generated Vector Stages</h3>
+                <span className="text-[11px] font-bold uppercase font-mono tracking-widest text-indigo-600 dark:text-indigo-400">Vyakhya Pipeline</span>
+                <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 leading-tight">Dynamic AI-Generated Vector Stages</h3>
                 
                 <div className="space-y-3.5 pt-2">
                   <div className="flex gap-3 items-start">
-                    <div className="bg-indigo-600/10 text-indigo-400 p-1.5 rounded-lg border border-indigo-500/10 font-bold text-xs">01</div>
+                    <div className="bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 p-1.5 rounded-lg border border-indigo-500/10 font-bold text-xs">01</div>
                     <div>
-                      <h4 className="text-xs font-bold text-zinc-300">Gemini Scriptwriting</h4>
-                      <p className="text-[11px] text-zinc-500 leading-normal">Transforms topic input into bullet-reveals, analogies, or timelines based on scientific guidelines.</p>
+                      <h4 className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Gemini Scriptwriting</h4>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-normal">Transforms topic input into bullet-reveals, analogies, or timelines based on scientific guidelines.</p>
                     </div>
                   </div>
 
                   <div className="flex gap-3 items-start">
-                    <div className="bg-indigo-600/10 text-indigo-400 p-1.5 rounded-lg border border-indigo-500/10 font-bold text-xs">02</div>
+                    <div className="bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 p-1.5 rounded-lg border border-indigo-500/10 font-bold text-xs">02</div>
                     <div>
-                      <h4 className="text-xs font-bold text-zinc-300">Multilingual Narration Accents</h4>
-                      <p className="text-[11px] text-zinc-500 leading-normal">Narration scripts sent to Gemini text-to-speech to play in English, Hindi, Tamil, and Bengali.</p>
+                      <h4 className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Multilingual Narration Accents</h4>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-normal">Narration scripts sent to Gemini text-to-speech to play in English, Hindi, Tamil, and Bengali.</p>
                     </div>
                   </div>
 
                   <div className="flex gap-3 items-start">
-                    <div className="bg-indigo-600/10 text-indigo-400 p-1.5 rounded-lg border border-indigo-500/10 font-bold text-xs">03</div>
+                    <div className="bg-indigo-600/10 text-indigo-600 dark:text-indigo-400 p-1.5 rounded-lg border border-indigo-500/10 font-bold text-xs">03</div>
                     <div>
-                      <h4 className="text-xs font-bold text-zinc-300">Interactive Canvas Renderer</h4>
-                      <p className="text-[11px] text-zinc-500 leading-normal">Vector timelines, charts, and diagrams rendered in real-time, matching narration audio perfectly.</p>
+                      <h4 className="text-xs font-bold text-zinc-700 dark:text-zinc-300">Interactive Canvas Renderer</h4>
+                      <p className="text-[11px] text-zinc-500 dark:text-zinc-400 leading-normal">Vector timelines, charts, and diagrams rendered in real-time, matching narration audio perfectly.</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div className="border-t border-zinc-900 pt-6 mt-8 flex justify-between items-center text-xs text-zinc-500">
+              <div className="border-t border-zinc-200 dark:border-zinc-800 pt-6 mt-8 flex justify-between items-center text-xs text-zinc-500 dark:text-zinc-450">
                 <span>Free Tier quota: 5 generations / day</span>
-                <span className="flex items-center gap-1 hover:text-zinc-300 cursor-pointer">
+                <span className="flex items-center gap-1 hover:text-zinc-800 dark:hover:text-zinc-300 cursor-pointer">
                   Learn how it works <ArrowRight className="w-3 h-3" />
                 </span>
               </div>
@@ -109,20 +109,11 @@ function StudioPage() {
           </div>
         </div>
 
-        {/* Interactive Practice & Doubt Hub (Standalone Mode) */}
-        <div className="border-t border-zinc-900/60 pt-10">
-          <div className="flex items-center gap-2 mb-6 select-none">
-            <Brain className="w-5 h-5 text-indigo-500 animate-pulse" />
-            <h2 className="text-lg font-extrabold text-zinc-200 uppercase tracking-wider">Unlimited Practice & Doubt Hub</h2>
-          </div>
-          <InteractiveHub isStandalone={true} />
-        </div>
-
         {/* Discovery Feed panel */}
-        <div className="border-t border-zinc-900/60 pt-10">
+        <div className="border-t border-zinc-200 dark:border-zinc-900/60 pt-10">
           <div className="flex items-center gap-2 mb-6">
-            <Compass className="w-5 h-5 text-indigo-500" />
-            <h2 className="text-lg font-extrabold text-zinc-200 uppercase tracking-wider">Explore Public Curation</h2>
+            <Compass className="w-5 h-5 text-indigo-600 dark:text-indigo-500" />
+            <h2 className="text-lg font-extrabold text-zinc-800 dark:text-zinc-200 uppercase tracking-wider">Explore Public Curation</h2>
           </div>
           <DiscoverFeed />
         </div>
@@ -308,6 +299,206 @@ function optimizePodcastCadence(turns: PodcastTurn[]): PodcastTurn[] {
   return optimized;
 }
 
+// Predefined CSS transition effects for the Preview Mode
+const TRANSITION_STYLES = `
+@keyframes previewFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes previewSlideLeft {
+  from { transform: translateX(60px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes previewSlideRight {
+  from { transform: translateX(-60px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+@keyframes previewZoomIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.animate-preview-fade {
+  animation: previewFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-preview-slide-left {
+  animation: previewSlideLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-preview-slide-right {
+  animation: previewSlideRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.animate-preview-zoom-in {
+  animation: previewZoomIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+`;
+
+interface ScenePreviewCardProps {
+  scene: Scene;
+  replayTrigger: number;
+  onReplay: () => void;
+}
+
+function ScenePreviewCard({ scene, replayTrigger, onReplay }: ScenePreviewCardProps) {
+  const transition = scene.transition_type || "fade";
+  
+  let transitionClass = "animate-preview-fade";
+  if (transition === "slide-left") {
+    transitionClass = "animate-preview-slide-left";
+  } else if (transition === "slide-right") {
+    transitionClass = "animate-preview-slide-right";
+  } else if (transition === "zoom-in") {
+    transitionClass = "animate-preview-zoom-in";
+  }
+
+  // Render a mini preview depending on the SceneType
+  const renderMiniVisuals = () => {
+    switch (scene.type) {
+      case "concept_split":
+        return (
+          <div className="grid grid-cols-2 gap-2 h-16 w-full mt-1">
+            <div className="border border-zinc-800/80 rounded p-1.5 bg-zinc-900/60 flex flex-col justify-between">
+              <span className="text-[10px] font-bold text-zinc-300 truncate">{scene.left_label || "Concept A"}</span>
+              <div className="h-1 bg-zinc-700 w-2/3 rounded-full"></div>
+            </div>
+            <div className="border border-zinc-800/80 rounded p-1.5 bg-zinc-900/60 flex flex-col justify-between">
+              <span className="text-[10px] font-bold text-zinc-300 truncate">{scene.right_label || "Concept B"}</span>
+              <div className="h-1 bg-zinc-700 w-1/2 rounded-full"></div>
+            </div>
+          </div>
+        );
+      case "bullet_reveal":
+        return (
+          <div className="flex flex-col gap-1 w-full mt-1.5">
+            {(scene.bullets && scene.bullets.length > 0 ? scene.bullets.slice(0, 3) : ["Key Aspect", "Supporting Detail", "Conclusion Node"]).map((bullet, idx) => (
+              <div key={idx} className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: scene.accent_color || "#6366f1" }}></div>
+                <span className="text-[10px] text-zinc-300 truncate max-w-full">{bullet}</span>
+              </div>
+            ))}
+          </div>
+        );
+      case "data_stat":
+        return (
+          <div className="flex flex-col items-center justify-center h-16 w-full text-center mt-1 bg-zinc-900/40 rounded border border-zinc-800/50 p-1">
+            <span className="text-lg font-black tracking-tight" style={{ color: scene.accent_color || "#6366f1" }}>
+              {scene.stat_value || "94%"}
+            </span>
+            <span className="text-[9px] text-zinc-400 font-mono tracking-wider uppercase truncate max-w-full">
+              {scene.stat_label || "Metric Name"}
+            </span>
+          </div>
+        );
+      case "timeline":
+        return (
+          <div className="flex items-center justify-between w-full mt-3 px-2">
+            {(scene.steps && scene.steps.length > 0 ? scene.steps.slice(0, 3) : ["Initiation", "Execution", "Completion"]).map((step, idx) => (
+              <div key={idx} className="flex flex-col items-center gap-1 flex-1 relative">
+                <div className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold text-white bg-zinc-800 border" style={{ borderColor: scene.accent_color || "#6366f1" }}>
+                  {idx + 1}
+                </div>
+                <span className="text-[8px] text-zinc-400 truncate max-w-[50px]">{step}</span>
+              </div>
+            ))}
+          </div>
+        );
+      case "quote_card":
+        return (
+          <div className="border-l-2 pl-2 mt-1.5 italic text-zinc-300 text-[10px] space-y-1.5" style={{ borderColor: scene.accent_color || "#6366f1" }}>
+            <p className="line-clamp-2">"{scene.quote_text || "Complex ideas made visually simple."}"</p>
+            {scene.quote_attribution && (
+              <p className="text-[8px] text-zinc-500 font-bold not-italic">— {scene.quote_attribution}</p>
+            )}
+          </div>
+        );
+      case "analogy_card":
+        return (
+          <div className="bg-zinc-900/60 border border-dashed border-zinc-850 rounded p-2 mt-2">
+            <div className="flex items-center gap-1.5 text-[9px] font-semibold text-amber-400">
+              <Sparkles className="w-3 h-3" />
+              <span>Analogy Metaphor</span>
+            </div>
+            <p className="text-[10px] text-zinc-300 line-clamp-2 mt-0.5 italic">
+              {scene.analogy_text || "Imagine a complex system as a simple post office..."}
+            </p>
+          </div>
+        );
+      case "summary_card":
+        return (
+          <div className="bg-zinc-900/80 border border-zinc-850 rounded-lg p-2 mt-2 flex flex-col justify-center gap-1">
+            <div className="h-1 bg-zinc-700 w-full rounded-full"></div>
+            <div className="h-1 bg-zinc-700 w-5/6 rounded-full"></div>
+            <div className="h-1 bg-zinc-700 w-2/3 rounded-full"></div>
+          </div>
+        );
+      default:
+        return (
+          <div className="flex flex-col items-center justify-center h-16 w-full text-center text-zinc-500 border border-zinc-800/40 border-dashed rounded mt-1.5">
+            <span className="text-[9px] uppercase font-mono tracking-widest">Illustration Stage</span>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-2 w-full">
+      <style>{TRANSITION_STYLES}</style>
+      <div 
+        key={`${scene.id}-${transition}-${replayTrigger}`}
+        style={{ 
+          backgroundColor: "#09090b", // clean deep dark card
+          borderColor: scene.accent_color || "#4f46e5" 
+        }}
+        className={`relative w-full aspect-[16/10] rounded-2xl p-4 flex flex-col justify-between overflow-hidden border-2 shadow-2xl ${transitionClass}`}
+      >
+        {/* BG Accent glow */}
+        <div 
+          className="absolute -right-16 -top-16 w-32 h-32 rounded-full blur-3xl opacity-20 pointer-events-none"
+          style={{ backgroundColor: scene.accent_color || "#4f46e5" }}
+        />
+
+        {/* Header */}
+        <div className="z-10">
+          <div className="flex items-center justify-between">
+            <span className="text-[9px] font-bold px-2 py-0.5 rounded-full text-zinc-400 bg-zinc-900 uppercase font-mono tracking-wider border border-zinc-850">
+              {scene.type.replace("_", " ")}
+            </span>
+            <span className="text-[9px] font-bold font-mono text-zinc-500 flex items-center gap-1">
+              <Zap className="w-2.5 h-2.5 text-indigo-400" />
+              {transition.toUpperCase()}
+            </span>
+          </div>
+          <h3 className="font-extrabold text-xs text-zinc-100 tracking-tight mt-1.5 line-clamp-2 uppercase">
+            {scene.headline || "Untitled Slide"}
+          </h3>
+        </div>
+
+        {/* Graphics content wrapper */}
+        <div className="flex-1 flex flex-col justify-center z-10 my-2">
+          {renderMiniVisuals()}
+        </div>
+
+        {/* Footer info */}
+        <div className="border-t border-zinc-900/80 pt-1.5 flex justify-between items-center z-10">
+          <span className="text-[8px] font-mono text-zinc-500 truncate max-w-[150px]">
+            {scene.visual_instruction || "No prompt concept."}
+          </span>
+          <span className="text-[8px] font-mono font-bold text-zinc-400 shrink-0 bg-zinc-900 px-1.5 py-0.5 rounded border border-zinc-850">
+            {scene.duration_seconds}s
+          </span>
+        </div>
+      </div>
+      
+      {/* Replay action */}
+      <button
+        onClick={onReplay}
+        className="self-center flex items-center gap-1.5 text-[10px] font-mono bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 border border-zinc-850 px-2.5 py-1 rounded-md transition cursor-pointer active:scale-95"
+      >
+        <Sparkles className="w-3 h-3 text-indigo-400" />
+        <span>Replay transition</span>
+      </button>
+    </div>
+  );
+}
+
 // 2. GENERATION PROGRESS TRACKING PAGE
 function ProgressPage() {
   const { jobId } = useParams<{ jobId: string }>();
@@ -324,6 +515,14 @@ function ProgressPage() {
   const [reviewedTitle, setReviewedTitle] = useState<string>("");
   const [reviewedScenes, setReviewedScenes] = useState<Scene[]>([]);
   const [reviewedTurns, setReviewedTurns] = useState<PodcastTurn[]>([]);
+  const [replayTriggers, setReplayTriggers] = useState<Record<string, number>>({});
+
+  const triggerReplay = (sceneId: string) => {
+    setReplayTriggers((prev) => ({
+      ...prev,
+      [sceneId]: (prev[sceneId] || 0) + 1,
+    }));
+  };
 
   useEffect(() => {
     let active = true;
@@ -489,9 +688,30 @@ function ProgressPage() {
     });
   };
 
+  const getVoiceForPreference = (langCode: string, preference: "male" | "female") => {
+    const lang = LANGUAGES.find(l => l.code === langCode) || LANGUAGES[0];
+    const voices = [lang.voiceHost, lang.voiceGuest];
+    const femaleVoices = ["Puck", "Charon"];
+    const maleVoices = ["Kore", "Fenrir", "Zephyr"];
+    if (preference === "female") {
+      const found = voices.find(v => femaleVoices.includes(v));
+      if (found) return found;
+      return femaleVoices.includes(lang.voiceGuest) ? lang.voiceGuest : "Puck";
+    } else {
+      const found = voices.find(v => maleVoices.includes(v));
+      if (found) return found;
+      return maleVoices.includes(lang.voiceHost) ? lang.voiceHost : "Kore";
+    }
+  };
+
   const handleApproveAndSynthesize = async () => {
     if (!state) return;
-    const { topic, language, style, length, format, voiceEngine = "browser" } = state;
+    
+    // Robustly determine voice engine and preference, checking state then localStorage, then fallback values
+    const language = state.language || localStorage.getItem("vyakhya_language") || "en-IN";
+    const voiceEngine = state.voiceEngine || localStorage.getItem("vyakhya_voice_engine") || "browser";
+    const voicePreference = state.voicePreference || localStorage.getItem("vyakhya_voice_preference") || "female";
+    const { topic, style, length, format } = state;
 
     setCurrentStage("narrating");
     setProgress(40);
@@ -521,12 +741,13 @@ function ProgressPage() {
 
           setLogText(`Generating narration audio for Scene ${idx + 1} of ${reviewedScenes.length}...`);
           try {
+            const voiceName = getVoiceForPreference(language, voicePreference);
             const ttsResponse = await fetchWithRetry("/api/generate-speech", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 text: scene.narration,
-                voice: idx % 2 === 0 ? targetLang.voiceHost : targetLang.voiceGuest,
+                voice: voiceName,
               }),
             });
 
@@ -567,12 +788,14 @@ function ProgressPage() {
 
           setLogText(`Generating conversation dialogue for voice turn ${idx + 1} of ${reviewedTurns.length}...`);
           try {
+            const hostVoice = getVoiceForPreference(language, voicePreference);
+            const guestVoice = targetLang.voiceHost === hostVoice ? targetLang.voiceGuest : targetLang.voiceHost;
             const ttsResponse = await fetchWithRetry("/api/generate-speech", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 text: turn.text,
-                voice: turn.speaker === "host" ? targetLang.voiceHost : targetLang.voiceGuest,
+                voice: turn.speaker === "host" ? hostVoice : guestVoice,
               }),
             });
 
@@ -647,6 +870,8 @@ function ProgressPage() {
         length,
         status: "complete",
         duration: finalDuration,
+        voicePreference,
+        voiceEngine,
         isPublic: true,
         tags: [format === "video" ? "Video" : "Podcast", targetLang.name.split(" ")[0]],
         views: 0,
@@ -784,31 +1009,15 @@ function ProgressPage() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {/* Left half: Headline and prompts */}
                       {showPreview ? (
-                         <div className="flex flex-col items-center justify-center p-4 bg-zinc-950 border border-zinc-800 rounded-lg text-center gap-2">
-                           <div className="text-zinc-600"><Sparkles className="w-10 h-10" /></div>
-                           <p className="text-xs text-zinc-400 font-mono italic break-words w-full">Mockup for: {scene.image_description || "Visual illustration placeholder"}</p>
-                         </div>
-                      ) : (
-                        <div className="space-y-3 flex flex-col">
-                          <div>
-                            <label className="text-[11px] font-mono text-zinc-400">Slide Headline</label>
-                            <textarea
-                              value={scene.headline}
-                              onChange={(e) => handleUpdateScene(index, "headline", e.target.value)}
-                              rows={2}
-                              className="w-full bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-lg px-3 py-1.5 text-xs font-medium outline-none mt-1 focus:border-indigo-500 break-words resize-none"
-                            />
-                          </div>
-                          <div>
-                            <label className="text-[11px] font-mono text-zinc-400">Visual Illustration prompt</label>
-                            <textarea
-                              value={scene.visual_instruction}
-                              onChange={(e) => handleUpdateScene(index, "visual_instruction", e.target.value)}
-                              rows={2}
-                              className="w-full bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-lg px-3 py-1.5 text-xs outline-none mt-1 focus:border-indigo-500 text-zinc-300 break-words resize-none"
-                            />
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 mt-auto">
+                        <div className="flex flex-col gap-3">
+                          <ScenePreviewCard 
+                            scene={scene} 
+                            replayTrigger={replayTriggers[scene.id] || 0} 
+                            onReplay={() => triggerReplay(scene.id)} 
+                          />
+                          
+                          {/* Live Settings adjustments during preview */}
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-1">
                             <div>
                               <label className="text-[11px] font-mono text-zinc-400">Duration (s)</label>
                               <input
@@ -817,7 +1026,7 @@ function ProgressPage() {
                                 max="30"
                                 value={scene.duration_seconds}
                                 onChange={(e) => handleUpdateScene(index, "duration_seconds", Math.max(3, parseInt(e.target.value, 10) || 5))}
-                                className="w-full bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-lg px-3 py-1 text-xs outline-none mt-1 focus:border-indigo-500"
+                                className="w-full bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-lg px-3 py-1.5 text-xs outline-none mt-1 focus:border-indigo-500"
                               />
                             </div>
                             <div>
@@ -826,8 +1035,86 @@ function ProgressPage() {
                                 type="text"
                                 value={scene.accent_color}
                                 onChange={(e) => handleUpdateScene(index, "accent_color", e.target.value)}
-                                className="w-full bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-lg px-3 py-1 text-xs outline-none mt-1 focus:border-indigo-500 font-mono"
+                                className="w-full bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-lg px-3 py-1.5 text-xs outline-none mt-1 focus:border-indigo-500 font-mono"
                               />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-mono text-zinc-400">Transition</label>
+                              <select
+                                value={scene.transition_type || "fade"}
+                                onChange={(e) => {
+                                  handleUpdateScene(index, "transition_type", e.target.value);
+                                  triggerReplay(scene.id);
+                                }}
+                                className="w-full bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-lg px-3 py-1.5 text-xs outline-none mt-1 focus:border-indigo-500 cursor-pointer"
+                              >
+                                <option value="fade">Fade</option>
+                                <option value="slide-left">Slide Left</option>
+                                <option value="slide-right">Slide Right</option>
+                                <option value="zoom-in">Zoom In / Scale</option>
+                              </select>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-3 flex flex-col justify-between">
+                          <div className="space-y-3">
+                            <div>
+                              <label className="text-[11px] font-mono text-zinc-400">Slide Headline</label>
+                              <textarea
+                                value={scene.headline}
+                                onChange={(e) => handleUpdateScene(index, "headline", e.target.value)}
+                                rows={2}
+                                className="w-full bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-lg px-3 py-1.5 text-xs font-medium outline-none mt-1 focus:border-indigo-500 break-words resize-none"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-mono text-zinc-400">Visual Illustration prompt</label>
+                              <textarea
+                                value={scene.visual_instruction}
+                                onChange={(e) => handleUpdateScene(index, "visual_instruction", e.target.value)}
+                                rows={2}
+                                className="w-full bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-lg px-3 py-1.5 text-xs outline-none mt-1 focus:border-indigo-500 text-zinc-300 break-words resize-none"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-auto">
+                            <div>
+                              <label className="text-[11px] font-mono text-zinc-400">Duration (s)</label>
+                              <input
+                                type="number"
+                                min="3"
+                                max="30"
+                                value={scene.duration_seconds}
+                                onChange={(e) => handleUpdateScene(index, "duration_seconds", Math.max(3, parseInt(e.target.value, 10) || 5))}
+                                className="w-full bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-lg px-3 py-1.5 text-xs outline-none mt-1 focus:border-indigo-500"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-mono text-zinc-400">Accent Color</label>
+                              <input
+                                type="text"
+                                value={scene.accent_color}
+                                onChange={(e) => handleUpdateScene(index, "accent_color", e.target.value)}
+                                className="w-full bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-lg px-3 py-1.5 text-xs outline-none mt-1 focus:border-indigo-500 font-mono"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[11px] font-mono text-zinc-400">Transition</label>
+                              <select
+                                value={scene.transition_type || "fade"}
+                                onChange={(e) => {
+                                  handleUpdateScene(index, "transition_type", e.target.value);
+                                  triggerReplay(scene.id);
+                                }}
+                                className="w-full bg-zinc-900 border border-zinc-800 text-zinc-100 rounded-lg px-3 py-1.5 text-xs outline-none mt-1 focus:border-indigo-500 cursor-pointer"
+                              >
+                                <option value="fade">Fade</option>
+                                <option value="slide-left">Slide Left</option>
+                                <option value="slide-right">Slide Right</option>
+                                <option value="zoom-in">Zoom In / Scale</option>
+                              </select>
                             </div>
                           </div>
                         </div>
@@ -944,13 +1231,26 @@ function ProgressPage() {
                 </span>
               </div>
               
-              <button
-                onClick={handleApproveAndSynthesize}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-extrabold px-8 py-3 rounded-xl text-sm transition hover:shadow-lg active:scale-95 cursor-pointer hover:shadow-indigo-500/10"
-              >
-                <Check className="w-5 h-5" />
-                <span>Approve & Synthesize Audio</span>
-              </button>
+              <div className="flex flex-col sm:flex-row w-full sm:w-auto gap-3 items-center">
+                {state?.format === "video" && reviewedScenes.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => exportReviewedScenesToPPTX(reviewedScenes, reviewedTitle || "Presentation")}
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-500 bg-white dark:bg-zinc-900/60 hover:bg-zinc-50 dark:hover:bg-zinc-900 text-zinc-700 dark:text-zinc-300 font-bold px-6 py-3 rounded-xl text-sm transition active:scale-95 cursor-pointer shadow-sm"
+                    title="Download current storyboard slides as a PowerPoint presentation file"
+                  >
+                    <Presentation className="w-4.5 h-4.5 text-orange-500 dark:text-orange-400" />
+                    <span>Download as PowerPoint (.pptx)</span>
+                  </button>
+                )}
+                <button
+                  onClick={handleApproveAndSynthesize}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-extrabold px-8 py-3 rounded-xl text-sm transition hover:shadow-lg active:scale-95 cursor-pointer hover:shadow-indigo-500/10"
+                >
+                  <Check className="w-5 h-5" />
+                  <span>Approve & Synthesize Audio</span>
+                </button>
+              </div>
             </div>
           </div>
         ) : (
