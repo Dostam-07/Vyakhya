@@ -37,6 +37,38 @@ export interface PPTXSlideJSON {
   }>;
 }
 
+export interface SlideContentProfile {
+  textDensity: "minimal" | "moderate" | "dense";
+  hasNumericData: boolean;
+  hasComparison: boolean;
+  hasSequence: boolean;
+  narrativePosition: "open" | "build" | "climax" | "close";
+  visualComplexity: "icon" | "diagram" | "illustration";
+}
+
+export interface DeckTheme {
+  id: string;
+  name: string;
+  headlineFont: string;
+  bodyFont: string;
+  scriptFontMap: Record<string, string>;
+  palette: {
+    surface: string;
+    surfaceAlt: string;
+    ink: string;
+    inkMuted: string;
+    accentPrimary: string;
+    accentSecondary: string;
+  };
+  geometry: {
+    marginInset: number;
+    headlineScale: number;
+    cornerStyle: "sharp" | "rounded";
+    dividerStyle: "none" | "thin-rule" | "dot-pattern";
+  };
+  decorativeMotif?: "none" | "corner-accent-shape" | "background-grid" | "background-grain";
+}
+
 export interface PPTXTheme {
   name: string;
   fontHeading: string;
@@ -118,11 +150,24 @@ export const PPTX_THEMES: Record<string, PPTXTheme> = {
   }
 };
 
-export function getThemeForStyle(style?: string): PPTXTheme {
-  if (style === "academic") return PPTX_THEMES.academic_serif;
-  if (style === "storytelling") return PPTX_THEMES.bold_gradient;
-  if (style === "news") return PPTX_THEMES.corporate_brief;
-  return PPTX_THEMES.modern_minimal;
+/**
+ * Classifier (Layer 1)
+ * Decides: text density, visual complexity, narrative position
+ */
+export function classifyScene(scene: Scene, index: number, total: number): SlideContentProfile {
+  const narrationLength = scene.narration.split(" ").length;
+  const textDensity = narrationLength < 30 ? "minimal" : narrationLength < 60 ? "moderate" : "dense";
+
+  const hasNumericData = !!scene.stat_value || !!scene.narration.match(/\d+%/);
+  const hasComparison = scene.type === 'concept_split' || scene.narration.toLowerCase().includes("vs") || scene.narration.toLowerCase().includes("unlike");
+  const hasSequence = !!scene.steps || scene.narration.toLowerCase().includes("step") || scene.narration.toLowerCase().includes("first");
+
+  const pos = index / total;
+  const narrativePosition = pos < 0.25 ? "open" : pos < 0.5 ? "build" : pos < 0.75 ? "climax" : "close";
+
+  const visualComplexity = (scene.image_description?.length || 0) > 100 ? "illustration" : "diagram"; // Simplified
+
+  return { textDensity, hasNumericData, hasComparison, hasSequence, narrativePosition, visualComplexity };
 }
 
 /**
